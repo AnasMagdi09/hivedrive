@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="HiveDrive - نظام إدارة ورش صيانة المركبات">
+    <title>HiveDrive - تسجيل الدخول</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/rtl.css">
+    
+    <style>
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        }
+        
+        .login-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-8);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-left::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+            animation: rotate 30s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-color);
+            padding: var(--space-10);
+            position: relative;
+            z-index: 1;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: var(--space-8);
+        }
+        
+        .login-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+        }
+        
+        .login-logo-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-bold);
+            color: white;
+            box-shadow: var(--shadow-glow);
+        }
+        
+        .login-logo-text {
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-weight-bold);
+            background: linear-gradient(135deg, var(--primary-400), var(--primary-600));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .login-title {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+        
+        .login-subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+        
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-5);
+        }
+        
+        .login-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-500);
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius);
+            font-size: var(--font-size-sm);
+            display: none;
+        }
+        
+        .login-error.show {
+            display: block;
+        }
+        
+        .login-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: var(--font-size-sm);
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: var(--space-4);
+            font-size: var(--font-size-base);
+        }
+        
+        .lang-switch {
+            position: absolute;
+            top: var(--space-6);
+            inset-inline-end: var(--space-6);
+            display: flex;
+            gap: var(--space-2);
+        }
+        
+        .lang-btn {
+            padding: var(--space-2) var(--space-3);
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+            border-radius: var(--radius);
+            transition: all var(--transition);
+        }
+        
+        .lang-btn:hover,
+        .lang-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .login-right {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
+            padding: var(--space-8);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        @media (min-width: 1024px) {
+            .login-right { display: flex; }
+        }
+        
+        .login-right::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        .login-right-content {
+            text-align: center;
+            color: white;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-right-title {
+            font-size: var(--font-size-4xl);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--space-4);
+        }
+        
+        .login-right-text {
+            font-size: var(--font-size-lg);
+            opacity: 0.9;
+            max-width: 400px;
+            line-height: var(--line-height-relaxed);
+        }
+        
+        .features-list {
+            margin-top: var(--space-10);
+            text-align: start;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+            font-size: var(--font-size-base);
+        }
+        
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+        <!-- Language Switch -->
+        <div class="lang-switch">
+            <button class="lang-btn active" data-lang="ar">العربية</button>
+            <button class="lang-btn" data-lang="en">English</button>
+        </div>
+        
+        <!-- Login Form -->
+        <div class="login-left">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="login-logo">
+                        <div class="login-logo-icon">🔧</div>
+                        <span class="login-logo-text">HiveDrive</span>
+                    </div>
+                    <h1 class="login-title" data-i18n="login">تسجيل الدخول</h1>
+                    <p class="login-subtitle" data-i18n="app_description">نظام إدارة ورش صيانة المركبات</p>
+                </div>
+                
+                <form class="login-form" id="loginForm">
+                    <div class="login-error" id="loginError"></div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="email">البريد الإلكتروني</label>
+                        <div class="input-group">
+                            <span class="input-icon start">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                    <polyline points="22,6 12,13 2,6"/>
+                                </svg>
+                            </span>
+                            <input type="email" class="form-input has-icon-start" id="email" required 
+                                   placeholder="example@company.com">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="password">كلمة المرور</label>
+                        <div class="input-group">
+                            <span class="input-icon start">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                            </span>
+                            <input type="password" class="form-input has-icon-start" id="password" required
+                                   placeholder="••••••••">
+                        </div>
+                    </div>
+                    
+                    <div class="login-options">
+                        <label class="form-check">
+                            <input type="checkbox" class="form-check-input" id="remember">
+                            <span class="form-check-label" data-i18n="remember_me">تذكرني</span>
+                        </label>
+                        <a href="#" class="text-accent" data-i18n="forgot_password">نسيت كلمة المرور؟</a>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary login-btn" id="loginBtn">
+                        <span data-i18n="login">تسجيل الدخول</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Right Side Info -->
+        <div class="login-right">
+            <div class="login-right-content">
+                <h2 class="login-right-title">مرحباً بك في HiveDrive</h2>
+                <p class="login-right-text">
+                    نظام متكامل لإدارة ورش صيانة المركبات، يساعدك على إدارة العمل بكفاءة عالية
+                </p>
+                
+                <div class="features-list">
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>إدارة العملاء والمركبات</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>المقايسات وأوامر الشغل</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>إدارة المخزون والمشتريات</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>الفواتير والمدفوعات</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>التقارير والإحصائيات</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- App Scripts -->
+    <script src="assets/js/i18n/ar.js"></script>
+    <script src="assets/js/i18n/en.js"></script>
+    <script src="assets/js/i18n/i18n.js"></script>
+    <script src="assets/js/config/supabase.js"></script>
+    <script src="assets/js/auth/auth.js"></script>
+    <script src="assets/js/utils/ui.js"></script>
+    
+    <script>
+        // Initialize i18n
+        i18n.init();
+        
+        // Language switch buttons
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const lang = btn.dataset.lang;
+                i18n.setLanguage(lang);
+                
+                // Update active state
+                document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update text
+                updatePageText();
+            });
+        });
+        
+        // Update page text based on language
+        function updatePageText() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                el.textContent = t(key);
+            });
+            
+            // Update title
+            document.title = `HiveDrive - ${t('login')}`;
+        }
+        
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const errorDiv = document.getElementById('loginError');
+            
+            // Show loading
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="spinner sm"></span>';
+            errorDiv.classList.remove('show');
+            
+            try {
+                const result = await auth.login(email, password);
+                
+                if (result.success) {
+                    // Redirect to dashboard
+                    window.location.href = 'dashboard.html';
+                } else {
+                    errorDiv.textContent = t('login_error');
+                    errorDiv.classList.add('show');
+                }
+            } catch (error) {
+                errorDiv.textContent = error.message || t('error');
+                errorDiv.classList.add('show');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = `<span data-i18n="login">${t('login')}</span>`;
+            }
+        });
+        
+        // Check if already logged in
+        (async () => {
+            const { session } = await auth.init();
+            if (session) {
+                window.location.href = 'dashboard.html';
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveDrive - إضافة مركبة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <link rel="stylesheet" href="../../assets/css/rtl.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <header class="header" id="header">
+                <div class="header-left">
+                    <a href="list.html" class="btn btn-icon btn-ghost">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="19" y1="12" x2="5" y2="12" />
+                            <polyline points="12 19 5 12 12 5" />
+                        </svg>
+                    </a>
+                    <h1 class="page-title" id="pageTitle">إضافة مركبة جديدة</h1>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="card" style="max-width: 900px;">
+                    <div class="card-body">
+                        <form id="vehicleForm">
+                            <!-- Customer Selection -->
+                            <div class="form-group">
+                                <label class="form-label required">العميل</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-input" id="customerSearch"
+                                        placeholder="ابحث بالاسم أو رقم الهاتف..." autocomplete="off">
+                                    <input type="hidden" id="customer_id" name="customer_id" required>
+                                </div>
+                                <div id="customerResults" class="dropdown-menu"
+                                    style="position: relative; width: 100%;"></div>
+                                <div id="selectedCustomer" class="mt-2" style="display: none;">
+                                    <span class="badge badge-primary" id="customerBadge"></span>
+                                    <button type="button" class="btn btn-sm btn-ghost"
+                                        onclick="clearCustomer()">✕</button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-6 mt-6">
+                                <div class="form-group">
+                                    <label class="form-label required">رقم اللوحة</label>
+                                    <input type="text" class="form-input" id="plate_number" name="plate_number" required
+                                        placeholder="أ ب ج 1234">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">رقم الشاسيه</label>
+                                    <input type="text" class="form-input" id="chassis_number" name="chassis_number">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label required">الماركة</label>
+                                    <select class="form-select" id="brand" name="brand" required>
+                                        <option value="">اختر الماركة</option>
+                                        <option value="Toyota">Toyota</option>
+                                        <option value="Hyundai">Hyundai</option>
+                                        <option value="Nissan">Nissan</option>
+                                        <option value="Chevrolet">Chevrolet</option>
+                                        <option value="Kia">Kia</option>
+                                        <option value="BMW">BMW</option>
+                                        <option value="Mercedes">Mercedes</option>
+                                        <option value="Honda">Honda</option>
+                                        <option value="Mazda">Mazda</option>
+                                        <option value="Mitsubishi">Mitsubishi</option>
+                                        <option value="Suzuki">Suzuki</option>
+                                        <option value="Peugeot">Peugeot</option>
+                                        <option value="Fiat">Fiat</option>
+                                        <option value="other">أخرى</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">الموديل</label>
+                                    <input type="text" class="form-input" id="model" name="model"
+                                        placeholder="Corolla, Elantra...">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">سنة الصنع</label>
+                                    <input type="number" class="form-input" id="year" name="year" min="1990" max="2030"
+                                        placeholder="2023">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">اللون</label>
+                                    <input type="text" class="form-input" id="color" name="color"
+                                        placeholder="أبيض، أسود...">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">نوع المحرك</label>
+                                    <input type="text" class="form-input" id="engine_type" name="engine_type"
+                                        placeholder="1600cc, 2000cc...">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">ناقل الحركة</label>
+                                    <select class="form-select" id="transmission" name="transmission">
+                                        <option value="">اختر</option>
+                                        <option value="automatic">أوتوماتيك</option>
+                                        <option value="manual">مانيوال</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">نوع الوقود</label>
+                                    <select class="form-select" id="fuel_type" name="fuel_type">
+                                        <option value="">اختر</option>
+                                        <option value="petrol">بنزين</option>
+                                        <option value="diesel">ديزل</option>
+                                        <option value="hybrid">هايبرد</option>
+                                        <option value="electric">كهربائي</option>
+                                        <option value="gas">غاز</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">عداد الكيلومترات</label>
+                                    <input type="number" class="form-input" id="mileage" name="mileage"
+                                        placeholder="50000">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">ملاحظات</label>
+                                <textarea class="form-textarea" id="notes" name="notes" rows="2"></textarea>
+                            </div>
+
+                            <div class="flex gap-4 justify-end mt-6">
+                                <a href="list.html" class="btn btn-secondary">إلغاء</a>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">حفظ المركبة</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/i18n/ar.js"></script>
+    <script src="../../assets/js/i18n/en.js"></script>
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script src="../../assets/js/config/supabase.js"></script>
+    <script src="../../assets/js/auth/auth.js"></script>
+    <script src="../../assets/js/utils/ui.js"></script>
+    <script src="../../assets/js/utils/api.js"></script>
+    <script src="../../assets/js/modules/vehicles.js"></script>
+    <script src="../../assets/js/modules/customers.js"></script>
+
+    <script>
+        let vehicleId = null;
+
+        async function init() {
+            i18n.init();
+            const { session } = await auth.init();
+            if (!session) { window.location.href = '../../index.html'; return; }
+
+            const params = new URLSearchParams(window.location.search);
+            vehicleId = params.get('id');
+            const customerId = params.get('customer_id');
+
+            if (vehicleId) {
+                document.getElementById('pageTitle').textContent = 'تعديل بيانات المركبة';
+                await loadVehicle();
+            } else if (customerId) {
+                await loadCustomerForNew(customerId);
+            }
+        }
+
+        async function loadVehicle() {
+            const vehicle = await Vehicles.getById(vehicleId);
+            if (!vehicle) { UI.toast('المركبة غير موجودة', 'error'); return; }
+
+            // Fill form
+            Object.keys(vehicle).forEach(key => {
+                const el = document.getElementById(key);
+                if (el && vehicle[key]) el.value = vehicle[key];
+            });
+
+            if (vehicle.customers) {
+                selectCustomer(vehicle.customer_id, vehicle.customers.name);
+            }
+        }
+
+        async function loadCustomerForNew(customerId) {
+            const { data } = await db.from('customers').select('id, name').eq('id', customerId).single();
+            if (data) selectCustomer(data.id, data.name);
+        }
+
+        // Customer search
+        let searchTimeout;
+        document.getElementById('customerSearch').addEventListener('input', async (e) => {
+            clearTimeout(searchTimeout);
+            const query = e.target.value;
+            if (query.length < 2) { document.getElementById('customerResults').innerHTML = ''; return; }
+
+            searchTimeout = setTimeout(async () => {
+                const customers = await Customers.search(query);
+                const resultsDiv = document.getElementById('customerResults');
+
+                if (customers.length === 0) {
+                    resultsDiv.innerHTML = '<div class="dropdown-item">لا توجد نتائج</div>';
+                } else {
+                    resultsDiv.innerHTML = customers.map(c => `
+                        <div class="dropdown-item" onclick="selectCustomer('${c.id}', '${c.name}')">
+                            <span>${c.name}</span>
+                            <span class="text-muted text-sm">${c.phone}</span>
+                        </div>
+                    `).join('');
+                }
+                resultsDiv.style.display = 'block';
+            }, 300);
+        });
+
+        function selectCustomer(id, name) {
+            document.getElementById('customer_id').value = id;
+            document.getElementById('customerSearch').value = '';
+            document.getElementById('customerResults').style.display = 'none';
+            document.getElementById('selectedCustomer').style.display = 'block';
+            document.getElementById('customerBadge').textContent = name;
+        }
+
+        function clearCustomer() {
+            document.getElementById('customer_id').value = '';
+            document.getElementById('selectedCustomer').style.display = 'none';
+        }
+
+        document.getElementById('vehicleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!document.getElementById('customer_id').value) {
+                UI.toast('يرجى اختيار العميل', 'error');
+                return;
+            }
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            // Convert numbers
+            if (data.year) data.year = parseInt(data.year);
+            if (data.mileage) data.mileage = parseInt(data.mileage);
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="spinner sm"></div>';
+
+            let result;
+            if (vehicleId) {
+                result = await Vehicles.update(vehicleId, data);
+            } else {
+                result = await Vehicles.create(data);
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'حفظ المركبة';
+
+            if (result) window.location.href = 'list.html';
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveDrive - الخزينة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <link rel="stylesheet" href="../../assets/css/rtl.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <header class="header" id="header">
+                <div class="header-left">
+                    <button class="btn btn-icon btn-ghost" id="mobileMenuBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <line x1="3" y1="18" x2="21" y2="18" />
+                        </svg>
+                    </button>
+                    <h1 class="page-title">الخزينة</h1>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-success" onclick="showTransactionModal('income')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        <span>إيراد</span>
+                    </button>
+                    <button class="btn btn-danger" onclick="showTransactionModal('expense')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        <span>مصروف</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Summary -->
+                <div class="grid grid-cols-4 mb-6">
+                    <div class="stat-card"
+                        style="background: linear-gradient(135deg, var(--primary-500), var(--primary-700));">
+                        <div class="stat-content" style="color: white;">
+                            <span class="stat-label" style="color: rgba(255,255,255,0.8);">الرصيد الحالي</span>
+                            <span class="stat-value" id="currentBalance" style="font-size: 1.75rem;">0 ج.م</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon success">📈</div>
+                        <div class="stat-content">
+                            <span class="stat-label">إيرادات اليوم</span>
+                            <span class="stat-value text-success" id="todayIncome">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon danger">📉</div>
+                        <div class="stat-content">
+                            <span class="stat-label">مصروفات اليوم</span>
+                            <span class="stat-value text-danger" id="todayExpense">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon primary">💵</div>
+                        <div class="stat-content">
+                            <span class="stat-label">صافي اليوم</span>
+                            <span class="stat-value" id="todayNet">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transactions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">حركات اليوم</h3>
+                    </div>
+                    <div class="card-body" id="transactionsContainer">
+                        <div class="flex justify-center">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Transaction Modal -->
+    <div class="modal" id="transactionModal">
+        <div class="modal-header">
+            <h3 class="modal-title" id="transactionModalTitle">إضافة حركة</h3>
+            <button class="modal-close" onclick="UI.hideModal('transactionModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <form id="transactionForm">
+                <input type="hidden" id="transactionType">
+                <div class="form-group">
+                    <label class="form-label required">المبلغ</label>
+                    <input type="number" class="form-input" id="transactionAmount" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">الفئة</label>
+                    <select class="form-select" id="transactionCategory" required>
+                        <option value="">اختر الفئة</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">الوصف</label>
+                    <textarea class="form-textarea" id="transactionDescription" rows="2" required></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="UI.hideModal('transactionModal')">إلغاء</button>
+            <button class="btn btn-primary" id="transactionSubmitBtn" onclick="submitTransaction()">حفظ</button>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/i18n/ar.js"></script>
+    <script src="../../assets/js/i18n/en.js"></script>
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script src="../../assets/js/config/supabase.js"></script>
+    <script src="../../assets/js/auth/auth.js"></script>
+    <script src="../../assets/js/utils/ui.js"></script>
+    <script src="../../assets/js/utils/api.js"></script>
+    <script src="../../assets/js/modules/finance.js"></script>
+
+    <script>
+        const incomeCategories = [
+            { value: 'invoice_payment', label: 'تحصيل فاتورة' },
+            { value: 'deposit', label: 'إيداع' },
+            { value: 'other_income', label: 'إيراد آخر' }
+        ];
+
+        const expenseCategories = [
+            { value: 'salary', label: 'رواتب' },
+            { value: 'rent', label: 'إيجار' },
+            { value: 'utilities', label: 'مرافق' },
+            { value: 'supplies', label: 'مستلزمات' },
+            { value: 'maintenance', label: 'صيانة' },
+            { value: 'purchase', label: 'مشتريات' },
+            { value: 'advance', label: 'سلفة' },
+            { value: 'other_expense', label: 'مصروف آخر' }
+        ];
+
+        async function init() {
+            i18n.init();
+            const { session } = await auth.init();
+            if (!session) { window.location.href = '../../index.html'; return; }
+            await loadTreasury();
+        }
+
+        async function loadTreasury() {
+            const user = auth.getUser();
+
+            // Get balance
+            const balance = await Finance.getTreasuryBalance(user?.branch_id);
+            document.getElementById('currentBalance').textContent = UI.formatCurrency(balance);
+
+            // Get today's summary
+            const summary = await Finance.getTodaySummary(user?.branch_id);
+            document.getElementById('todayIncome').textContent = UI.formatCurrency(summary.income);
+            document.getElementById('todayExpense').textContent = UI.formatCurrency(summary.expense);
+            document.getElementById('todayNet').textContent = UI.formatCurrency(summary.net);
+
+            // Load today's transactions
+            await loadTransactions();
+        }
+
+        async function loadTransactions() {
+            const today = new Date().toISOString().split('T')[0];
+            const { data: transactions } = await db
+                .from('treasury_transactions')
+                .select('*, created_by_user:users(full_name)')
+                .eq('transaction_date', today)
+                .order('created_at', { ascending: false });
+
+            const container = document.getElementById('transactionsContainer');
+
+            if (!transactions || transactions.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💰</div><h4 class="empty-state-title">لا توجد حركات اليوم</h4></div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>النوع</th>
+                                <th>الفئة</th>
+                                <th>الوصف</th>
+                                <th>المبلغ</th>
+                                <th>الرصيد بعد</th>
+                                <th>بواسطة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${transactions.map(t => `
+                                <tr>
+                                    <td><span class="badge ${t.transaction_type === 'income' ? 'badge-success' : 'badge-danger'}">${t.transaction_type === 'income' ? 'إيراد' : 'مصروف'}</span></td>
+                                    <td>${t.category || '-'}</td>
+                                    <td>${t.description || '-'}</td>
+                                    <td class="${t.transaction_type === 'income' ? 'text-success' : 'text-danger'} font-semibold">
+                                        ${t.transaction_type === 'income' ? '+' : '-'}${UI.formatCurrency(t.amount)}
+                                    </td>
+                                    <td>${UI.formatCurrency(t.balance_after)}</td>
+                                    <td>${t.created_by_user?.full_name || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function showTransactionModal(type) {
+            document.getElementById('transactionType').value = type;
+            document.getElementById('transactionModalTitle').textContent = type === 'income' ? 'إضافة إيراد' : 'إضافة مصروف';
+            document.getElementById('transactionAmount').value = '';
+            document.getElementById('transactionDescription').value = '';
+
+            const categories = type === 'income' ? incomeCategories : expenseCategories;
+            document.getElementById('transactionCategory').innerHTML = '<option value="">اختر الفئة</option>' +
+                categories.map(c => `<option value="${c.value}">${c.label}</option>`).join('');
+
+            const btn = document.getElementById('transactionSubmitBtn');
+            btn.className = type === 'income' ? 'btn btn-success' : 'btn btn-danger';
+
+            UI.showModal('transactionModal');
+        }
+
+        async function submitTransaction() {
+            const type = document.getElementById('transactionType').value;
+            const amount = parseFloat(document.getElementById('transactionAmount').value);
+            const category = document.getElementById('transactionCategory').value;
+            const description = document.getElementById('transactionDescription').value;
+
+            if (!amount || amount <= 0 || !category || !description) {
+                UI.toast('يرجى ملء جميع الحقول', 'error');
+                return;
+            }
+
+            if (type === 'expense') {
+                await Finance.addExpense({ amount, category, description });
+            } else {
+                await Finance.addTreasuryTransaction({ amount, category, description }, 'income');
+                UI.toast(t('success'), 'success');
+            }
+
+            UI.hideModal('transactionModal');
+            loadTreasury();
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

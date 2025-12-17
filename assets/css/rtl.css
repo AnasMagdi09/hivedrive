@@ -1,0 +1,143 @@
+/* ============================================
+   HiveDrive - RTL Support for Arabic
+   ============================================ */
+
+/* Direction */
+[dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Flip horizontal margins and paddings */
+[dir="rtl"] .ms-auto {
+    margin-right: auto;
+    margin-left: 0;
+}
+
+[dir="rtl"] .me-auto {
+    margin-left: auto;
+    margin-right: 0;
+}
+
+/* Flip borders */
+[dir="rtl"] .border-start {
+    border-left: none;
+    border-right: 1px solid var(--border-color);
+}
+
+[dir="rtl"] .border-end {
+    border-right: none;
+    border-left: 1px solid var(--border-color);
+}
+
+/* Flip icons that should mirror */
+[dir="rtl"] .icon-flip {
+    transform: scaleX(-1);
+}
+
+/* Form select arrow */
+[dir="rtl"] .form-select {
+    background-position: left var(--space-3) center;
+    padding-left: var(--space-10);
+    padding-right: var(--space-4);
+}
+
+/* Table alignment */
+[dir="rtl"] .table th,
+[dir="rtl"] .table td {
+    text-align: right;
+}
+
+/* Dropdown positioning */
+[dir="rtl"] .dropdown-menu {
+    left: 0;
+    right: auto;
+}
+
+/* Modal close button */
+[dir="rtl"] .modal-close {
+    margin-right: auto;
+    margin-left: 0;
+}
+
+/* Badge positioning */
+[dir="rtl"] .nav-item-badge {
+    margin-right: auto;
+    margin-left: 0;
+}
+
+/* Sidebar collapsed badge */
+[dir="rtl"] .sidebar.collapsed .nav-item-badge {
+    left: 4px;
+    right: auto;
+}
+
+/* Toast animation */
+[dir="rtl"] .toast {
+    animation-name: slideInRtl;
+}
+
+@keyframes slideInRtl {
+    from {
+        opacity: 0;
+        transform: translateX(-100%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Switch thumb */
+[dir="rtl"] .switch-thumb {
+    left: auto;
+    right: 3px;
+}
+
+[dir="rtl"] .form-switch input:checked+.switch-track .switch-thumb {
+    right: 25px;
+    left: auto;
+}
+
+/* Input icons */
+[dir="rtl"] .input-icon.start {
+    left: auto;
+    right: var(--space-4);
+}
+
+[dir="rtl"] .input-icon.end {
+    right: auto;
+    left: var(--space-4);
+}
+
+/* Avatar group */
+[dir="rtl"] .avatar-group .avatar {
+    margin-right: -10px;
+    margin-left: 0;
+}
+
+[dir="rtl"] .avatar-group .avatar:first-child {
+    margin-right: 0;
+}
+
+/* Progress bar */
+[dir="rtl"] .progress-bar {
+    transform-origin: right;
+}
+
+/* Stat change arrow */
+[dir="rtl"] .stat-change .icon {
+    transform: scaleX(-1);
+}
+
+/* Breadcrumb separator */
+[dir="rtl"] .breadcrumb-separator {
+    transform: scaleX(-1);
+}
+
+/* Pagination */
+[dir="rtl"] .pagination-prev .icon,
+[dir="rtl"] .pagination-next .icon {
+    transform: scaleX(-1);
+}

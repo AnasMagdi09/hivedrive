@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="HiveDrive - لوحة التحكم">
+    <title>HiveDrive - لوحة التحكم</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/rtl.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">🔧</div>
+                    <span class="logo-text">HiveDrive</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                    </svg>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav" id="sidebarNav">
+                <!-- Navigation will be injected based on role -->
+            </nav>
+
+            <div class="sidebar-user">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">م</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">جاري التحميل...</div>
+                        <div class="user-role" id="userRole">-</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header" id="header">
+                <div class="header-left">
+                    <button class="btn btn-icon btn-ghost" id="mobileMenuBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <line x1="3" y1="18" x2="21" y2="18" />
+                        </svg>
+                    </button>
+                    <h1 class="page-title" id="pageTitle" data-i18n="dashboard">لوحة التحكم</h1>
+                </div>
+
+                <div class="header-right">
+                    <!-- Search -->
+                    <div class="input-group" style="width: 280px;">
+                        <span class="input-icon start">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                        </span>
+                        <input type="search" class="form-input has-icon-start" placeholder="بحث..."
+                            style="height: 40px;">
+                    </div>
+
+                    <!-- Language Toggle -->
+                    <button class="btn btn-icon btn-ghost" id="langToggle" data-tooltip="تغيير اللغة">
+                        <span id="langIcon">EN</span>
+                    </button>
+
+                    <!-- Notifications -->
+                    <button class="btn btn-icon btn-ghost" id="notificationsBtn" data-tooltip="الإشعارات">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                    </button>
+
+                    <!-- User Menu -->
+                    <div class="dropdown" id="userMenuDropdown">
+                        <button class="btn btn-ghost" id="userMenuBtn">
+                            <div class="avatar sm" id="headerAvatar">م</div>
+                        </button>
+                        <div class="dropdown-menu" id="userMenu">
+                            <a href="#" class="dropdown-item">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                </svg>
+                                <span data-i18n="profile">الملف الشخصي</span>
+                            </a>
+                            <a href="#" class="dropdown-item">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="3" />
+                                    <path
+                                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                                </svg>
+                                <span data-i18n="settings">الإعدادات</span>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item danger" id="logoutBtn">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                    <polyline points="16 17 21 12 16 7" />
+                                    <line x1="21" y1="12" x2="9" y2="12" />
+                                </svg>
+                                <span data-i18n="logout">تسجيل الخروج</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content" id="pageContent">
+                <!-- Dashboard Stats -->
+                <div class="grid grid-cols-4 mb-6">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label" data-i18n="customers">العملاء</span>
+                            <span class="stat-value" id="statCustomers">0</span>
+                            <span class="stat-change positive">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                                </svg>
+                                +12%
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="16" y1="13" x2="8" y2="13" />
+                                <line x1="16" y1="17" x2="8" y2="17" />
+                                <polyline points="10 9 9 9 8 9" />
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label" data-i18n="work_orders">أوامر الشغل</span>
+                            <span class="stat-value" id="statWorkOrders">0</span>
+                            <span class="stat-change positive">+5</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="12" y1="1" x2="12" y2="23" />
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label" data-i18n="revenue">الإيرادات اليوم</span>
+                            <span class="stat-value" id="statRevenue">0 ج.م</span>
+                            <span class="stat-change positive">+18%</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon danger">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                <line x1="12" y1="9" x2="12" y2="13" />
+                                <line x1="12" y1="17" x2="12.01" y2="17" />
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label" data-i18n="low_stock">مخزون منخفض</span>
+                            <span class="stat-value" id="statLowStock">0</span>
+                            <span class="stat-change negative">تحتاج مراجعة</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Work Orders & Quick Actions -->
+                <div class="grid grid-cols-2">
+                    <!-- Recent Work Orders -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title" data-i18n="work_orders">أوامر الشغل الحديثة</h3>
+                            <a href="pages/workorders/list.html" class="btn btn-sm btn-ghost">
+                                <span data-i18n="view">عرض الكل</span>
+                            </a>
+                        </div>
+                        <div class="card-body" id="recentWorkOrders">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📋</div>
+                                <h4 class="empty-state-title" data-i18n="no_data">لا توجد بيانات</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">الإجراءات السريعة</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="grid grid-cols-2 gap-4">
+                                <a href="pages/customers/form.html" class="btn btn-secondary"
+                                    style="height: 80px; flex-direction: column;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                        <circle cx="8.5" cy="7" r="4" />
+                                        <line x1="20" y1="8" x2="20" y2="14" />
+                                        <line x1="23" y1="11" x2="17" y2="11" />
+                                    </svg>
+                                    <span>عميل جديد</span>
+                                </a>
+                                <a href="pages/quotations/form.html" class="btn btn-secondary"
+                                    style="height: 80px; flex-direction: column;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                        <polyline points="14 2 14 8 20 8" />
+                                        <line x1="12" y1="18" x2="12" y2="12" />
+                                        <line x1="9" y1="15" x2="15" y2="15" />
+                                    </svg>
+                                    <span>مقايسة جديدة</span>
+                                </a>
+                                <a href="pages/workorders/form.html" class="btn btn-secondary"
+                                    style="height: 80px; flex-direction: column;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path
+                                            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                                    </svg>
+                                    <span>أمر شغل جديد</span>
+                                </a>
+                                <a href="pages/invoices/form.html" class="btn btn-secondary"
+                                    style="height: 80px; flex-direction: column;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                                        <line x1="1" y1="10" x2="23" y2="10" />
+                                    </svg>
+                                    <span>فاتورة جديدة</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- App Scripts -->
+    <script src="assets/js/i18n/ar.js"></script>
+    <script src="assets/js/i18n/en.js"></script>
+    <script src="assets/js/i18n/i18n.js"></script>
+    <script src="assets/js/config/supabase.js"></script>
+    <script src="assets/js/auth/auth.js"></script>
+    <script src="assets/js/utils/ui.js"></script>
+    <script src="assets/js/modules/dashboard.js"></script>
+
+    <script>
+        // Navigation items based on role
+        const navItems = {
+            admin: [
+                {
+                    section: 'main', title: 'القائمة الرئيسية', items: [
+                        { icon: 'dashboard', label: 'dashboard', href: 'dashboard.html', active: true },
+                    ]
+                },
+                {
+                    section: 'operations', title: 'العمليات', items: [
+                        { icon: 'customers', label: 'customers', href: 'pages/customers/list.html' },
+                        { icon: 'vehicles', label: 'vehicles', href: 'pages/vehicles/list.html' },
+                        { icon: 'quotations', label: 'quotations', href: 'pages/quotations/list.html' },
+                        { icon: 'workorders', label: 'work_orders', href: 'pages/workorders/list.html' },
+                    ]
+                },
+                {
+                    section: 'inventory', title: 'المخزون', items: [
+                        { icon: 'parts', label: 'parts', href: 'pages/inventory/list.html' },
+                        { icon: 'suppliers', label: 'suppliers', href: 'pages/suppliers/list.html' },
+                        { icon: 'purchases', label: 'purchases', href: 'pages/purchases/list.html' },
+                    ]
+                },
+                {
+                    section: 'finance', title: 'المالية', items: [
+                        { icon: 'invoices', label: 'invoices', href: 'pages/invoices/list.html' },
+                        { icon: 'treasury', label: 'treasury', href: 'pages/treasury/index.html' },
+                        { icon: 'employees', label: 'employees', href: 'pages/employees/list.html' },
+                    ]
+                },
+                {
+                    section: 'reports', title: 'التقارير', items: [
+                        { icon: 'reports', label: 'reports', href: 'pages/reports/index.html' },
+                        { icon: 'settings', label: 'settings', href: 'pages/settings/index.html' },
+                    ]
+                },
+            ]
+        };
+
+        const icons = {
+            dashboard: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>',
+            customers: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+            vehicles: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.6-.4-1-1-1h-.8l-1.2-4.4c-.2-.7-.8-1.1-1.5-1.1H6.5c-.7 0-1.3.5-1.5 1.1L3.8 12H3c-.6 0-1 .4-1 1v3c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>',
+            quotations: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+            workorders: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
+            parts: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>',
+            suppliers: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
+            purchases: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>',
+            invoices: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',
+            treasury: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+            employees: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+            reports: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+            settings: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
+        };
+
+        // Render navigation
+        function renderNav(role) {
+            const items = navItems[role] || navItems['admin'];
+            const nav = document.getElementById('sidebarNav');
+
+            nav.innerHTML = items.map(section => `
+                <div class="nav-section">
+                    <div class="nav-section-title">${section.title}</div>
+                    ${section.items.map(item => `
+                        <a href="${item.href}" class="nav-item ${item.active ? 'active' : ''}">
+                            <span class="nav-item-icon">${icons[item.icon] || ''}</span>
+                            <span class="nav-item-text" data-i18n="${item.label}">${t(item.label)}</span>
+                            ${item.badge ? `<span class="nav-item-badge">${item.badge}</span>` : ''}
+                        </a>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        // Initialize
+        async function init() {
+            // Init i18n
+            i18n.init();
+
+            // Check auth
+            const { user, session } = await auth.init();
+
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Update user info
+            if (user) {
+                const initials = user.full_name ? user.full_name.charAt(0) : 'U';
+                document.getElementById('userAvatar').textContent = initials;
+                document.getElementById('headerAvatar').textContent = initials;
+                document.getElementById('userName').textContent = user.full_name || user.email;
+                document.getElementById('userRole').textContent = auth.getRoleDisplayName();
+            }
+
+            // Render navigation
+            renderNav(user?.role || 'admin');
+
+            // Load dashboard data
+            loadDashboardData();
+        }
+
+        // Load dashboard statistics
+        async function loadDashboardData() {
+            try {
+                // Count customers
+                const { count: customersCount } = await db.from('customers').select('*', { count: 'exact', head: true });
+                document.getElementById('statCustomers').textContent = UI.formatNumber(customersCount || 0);
+
+                // Count active work orders
+                const { count: workOrdersCount } = await db.from('work_orders').select('*', { count: 'exact', head: true }).in('status', ['pending', 'in_progress']);
+                document.getElementById('statWorkOrders').textContent = UI.formatNumber(workOrdersCount || 0);
+
+            } catch (error) {
+                console.error('Dashboard data error:', error);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('sidebarToggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+            document.querySelector('.main-content').classList.toggle('sidebar-collapsed');
+            document.getElementById('header').classList.toggle('sidebar-collapsed');
+        });
+
+        document.getElementById('langToggle').addEventListener('click', () => {
+            const newLang = i18n.toggleLanguage();
+            document.getElementById('langIcon').textContent = newLang === 'ar' ? 'EN' : 'ع';
+
+            // Update all i18n text
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                el.textContent = t(el.dataset.i18n);
+            });
+        });
+
+        document.getElementById('userMenuBtn').addEventListener('click', () => {
+            document.getElementById('userMenuDropdown').classList.toggle('open');
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await auth.logout();
+            window.location.href = 'index.html';
+        });
+
+        // Close dropdown on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#userMenuDropdown')) {
+                document.getElementById('userMenuDropdown').classList.remove('open');
+            }
+        });
+
+        // Mobile menu
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+
+        // Initialize app
+        init();
+    </script>
+</body>
+
+</html>

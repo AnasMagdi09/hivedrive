@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveDrive - العملاء</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <link rel="stylesheet" href="../../assets/css/rtl.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar will be loaded dynamically -->
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <main class="main-content">
+            <header class="header" id="header">
+                <div class="header-left">
+                    <button class="btn btn-icon btn-ghost" id="mobileMenuBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <line x1="3" y1="18" x2="21" y2="18" />
+                        </svg>
+                    </button>
+                    <h1 class="page-title" data-i18n="customers">العملاء</h1>
+                </div>
+                <div class="header-right">
+                    <a href="form.html" class="btn btn-primary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        <span data-i18n="add">إضافة عميل</span>
+                    </a>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Filters -->
+                <div class="card mb-6">
+                    <div class="card-body">
+                        <div class="flex gap-4 flex-wrap">
+                            <div class="input-group" style="flex: 1; min-width: 250px;">
+                                <span class="input-icon start">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <circle cx="11" cy="11" r="8" />
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                    </svg>
+                                </span>
+                                <input type="search" class="form-input has-icon-start" id="searchInput"
+                                    placeholder="بحث بالاسم أو رقم الهاتف...">
+                            </div>
+                            <select class="form-select" id="typeFilter" style="width: 180px;">
+                                <option value="">كل الأنواع</option>
+                                <option value="individual">أفراد</option>
+                                <option value="company">شركات</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customers List -->
+                <div class="card">
+                    <div class="card-body" id="customersContainer">
+                        <div class="flex justify-center">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/i18n/ar.js"></script>
+    <script src="../../assets/js/i18n/en.js"></script>
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script src="../../assets/js/config/supabase.js"></script>
+    <script src="../../assets/js/auth/auth.js"></script>
+    <script src="../../assets/js/utils/ui.js"></script>
+    <script src="../../assets/js/utils/api.js"></script>
+    <script src="../../assets/js/modules/customers.js"></script>
+
+    <script>
+        let currentPage = 1;
+        const pageSize = 20;
+
+        async function init() {
+            i18n.init();
+            const { session } = await auth.init();
+            if (!session) {
+                window.location.href = '../../index.html';
+                return;
+            }
+            await loadCustomers();
+        }
+
+        async function loadCustomers() {
+            const search = document.getElementById('searchInput').value;
+            const type = document.getElementById('typeFilter').value;
+
+            const options = {
+                limit: pageSize,
+                offset: (currentPage - 1) * pageSize
+            };
+
+            if (type) options.filters = { customer_type: type };
+            if (search) {
+                options.search = search;
+                options.searchFields = ['name', 'phone'];
+            }
+
+            const { data } = await Customers.loadList(options);
+            Customers.renderTable(data, document.getElementById('customersContainer'));
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', debounce(loadCustomers, 300));
+        document.getElementById('typeFilter').addEventListener('change', loadCustomers);
+
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
