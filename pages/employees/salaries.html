@@ -455,13 +455,21 @@
                     net_salary: netSalary,
                     notes: notes
                 });
-                if (salaryError) throw salaryError;
+                if (salaryError) {
+                    if (salaryError.code === '23505') {
+                        alert('تم صرف مرتب هذا الموظف بالفعل لهذه الفترة');
+                        closeModal();
+                        return;
+                    }
+                    throw salaryError;
+                }
 
                 if (advancesDeducted > 0) {
                     await db.from('employee_advances').update({ status: 'deducted' }).eq('employee_id', selectedEmployee.id).eq('status', 'pending');
                 }
 
-                const { data: treasury } = await db.from('treasury').select('*').single();
+                const { data: treasuryData } = await db.from('treasury').select('*').limit(1);
+                const treasury = treasuryData && treasuryData[0];
                 if (treasury) {
                     const newBalance = (treasury.current_balance || 0) - netSalary;
                     await db.from('treasury').update({ current_balance: newBalance, updated_at: new Date().toISOString() }).eq('id', treasury.id);
@@ -496,6 +504,7 @@
             const unpaid = technicians.filter(emp => !weeklyPayments.find(p => p.employee_id === emp.id));
             if (unpaid.length === 0) { alert('تم صرف جميع المرتبات لهذا الأسبوع'); return; }
             
+            let paidCount = 0;
             for (const emp of unpaid) {
                 selectedEmployee = emp;
                 selectedPaymentType = 'weekly';
@@ -504,9 +513,16 @@
                 document.getElementById('deductions').value = 0;
                 const { data: advData } = await db.from('employee_advances').select('*').eq('employee_id', emp.id).eq('status', 'pending');
                 document.getElementById('advances').value = (advData || []).reduce((sum, a) => sum + (a.amount || 0), 0);
-                await processSalaryPayment();
+                
+                try {
+                    await processSalaryPaymentSilent();
+                    paidCount++;
+                } catch (e) {
+                    console.log('Skip:', emp.full_name, e.message);
+                }
             }
-            alert('تم صرف جميع مرتبات الفنيين');
+            await loadAllData();
+            alert(`تم صرف ${paidCount} مرتبات`);
         }
 
         async function payAllMonthly() {
@@ -514,6 +530,7 @@
             const unpaid = otherEmployees.filter(emp => !monthlyPayments.find(p => p.employee_id === emp.id));
             if (unpaid.length === 0) { alert('تم صرف جميع المرتبات لهذا الشهر'); return; }
             
+            let paidCount = 0;
             for (const emp of unpaid) {
                 selectedEmployee = emp;
                 selectedPaymentType = 'monthly';
@@ -522,9 +539,74 @@
                 document.getElementById('deductions').value = 0;
                 const { data: advData } = await db.from('employee_advances').select('*').eq('employee_id', emp.id).eq('status', 'pending');
                 document.getElementById('advances').value = (advData || []).reduce((sum, a) => sum + (a.amount || 0), 0);
-                await processSalaryPayment();
+                
+                try {
+                    await processSalaryPaymentSilent();
+                    paidCount++;
+                } catch (e) {
+                    console.log('Skip:', emp.full_name, e.message);
+                }
             }
-            alert('تم صرف جميع مرتبات الموظفين');
+            await loadAllData();
+            alert(`تم صرف ${paidCount} مرتبات`);
+        }
+
+        // Silent version for batch processing
+        async function processSalaryPaymentSilent() {
+            if (!selectedEmployee) return;
+
+            const baseSalary = parseFloat(document.getElementById('baseSalary').value) || 0;
+            const bonus = parseFloat(document.getElementById('bonus').value) || 0;
+            const deductions = parseFloat(document.getElementById('deductions').value) || 0;
+            const advancesDeducted = parseFloat(document.getElementById('advances').value) || 0;
+            const netSalary = baseSalary + bonus - deductions - advancesDeducted;
+
+            if (netSalary <= 0) return;
+
+            const weekNumber = selectedPaymentType === 'weekly' ? Math.ceil((currentWeekStart.getDate()) / 7) : null;
+
+            const { error: salaryError } = await db.from('salary_payments').insert({
+                employee_id: selectedEmployee.id,
+                payment_type: selectedPaymentType,
+                payment_date: new Date().toISOString().split('T')[0],
+                week_number: weekNumber,
+                week_start: selectedPaymentType === 'weekly' ? currentWeekStart.toISOString().split('T')[0] : null,
+                month: currentMonth.getMonth() + 1,
+                year: currentMonth.getFullYear(),
+                base_salary: baseSalary,
+                bonus: bonus,
+                deductions: deductions,
+                advances_deducted: advancesDeducted,
+                net_salary: netSalary
+            });
+            
+            if (salaryError) throw salaryError;
+
+            if (advancesDeducted > 0) {
+                await db.from('employee_advances').update({ status: 'deducted' }).eq('employee_id', selectedEmployee.id).eq('status', 'pending');
+            }
+
+            const { data: treasuryData } = await db.from('treasury').select('*').limit(1);
+            const treasury = treasuryData && treasuryData[0];
+            if (treasury) {
+                const newBalance = (treasury.current_balance || 0) - netSalary;
+                await db.from('treasury').update({ current_balance: newBalance }).eq('id', treasury.id);
+                
+                const periodLabel = selectedPaymentType === 'weekly' 
+                    ? `أسبوع ${formatDate(currentWeekStart)}` 
+                    : `${currentMonth.getMonth() + 1}/${currentMonth.getFullYear()}`;
+                
+                await db.from('treasury_transactions').insert({
+                    treasury_id: treasury.id,
+                    transaction_type: 'expense',
+                    category: selectedPaymentType === 'weekly' ? 'مرتبات أسبوعية' : 'مرتبات شهرية',
+                    amount: netSalary,
+                    balance_after: newBalance,
+                    reference_type: 'salary',
+                    description: `مرتب ${selectedEmployee.full_name} - ${periodLabel}`,
+                    transaction_date: new Date().toISOString().split('T')[0]
+                });
+            }
         }
 
         document.getElementById('mobileMenuBtn').addEventListener('click', () => {
