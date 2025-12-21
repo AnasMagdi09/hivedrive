@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveDrive - إضافة موظف</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <link rel="stylesheet" href="../../assets/css/rtl.css">
+    <style>
+        .permissions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .permission-item { background: var(--bg-tertiary); border-radius: 8px; padding: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+        .permission-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); }
+        .permission-item label { cursor: pointer; flex: 1; }
+        .role-card { background: var(--bg-card); border: 2px solid var(--border-color); border-radius: 12px; padding: 1.5rem; cursor: pointer; transition: all 0.2s; }
+        .role-card:hover { border-color: var(--accent); }
+        .role-card.selected { border-color: var(--accent); background: var(--accent-light); }
+        .role-card .role-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .role-card .role-name { font-weight: 600; color: var(--text-primary); }
+        .role-card .role-desc { font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem; }
+        .roles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="btn btn-icon btn-ghost" onclick="history.back()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <h1 class="page-title" id="pageTitle">إضافة موظف جديد</h1>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <form id="employeeForm" class="card">
+                    <div class="card-body">
+                        <!-- Basic Info -->
+                        <h3 class="mb-4">📋 البيانات الأساسية</h3>
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="form-group">
+                                <label class="form-label">الاسم الكامل *</label>
+                                <input type="text" class="form-input" id="fullName" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">البريد الإلكتروني *</label>
+                                <input type="email" class="form-input" id="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">رقم الهاتف</label>
+                                <input type="tel" class="form-input" id="phone">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">كلمة المرور *</label>
+                                <input type="password" class="form-input" id="password" required minlength="6">
+                                <small class="text-muted">6 أحرف على الأقل</small>
+                            </div>
+                        </div>
+
+                        <!-- Role Selection -->
+                        <h3 class="mb-4">👤 الدور الوظيفي</h3>
+                        <div class="roles-grid mb-6">
+                            <div class="role-card" data-role="admin" onclick="selectRole('admin')">
+                                <div class="role-icon">👑</div>
+                                <div class="role-name">مدير النظام</div>
+                                <div class="role-desc">صلاحيات كاملة</div>
+                            </div>
+                            <div class="role-card" data-role="manager" onclick="selectRole('manager')">
+                                <div class="role-icon">📊</div>
+                                <div class="role-name">مدير العمليات</div>
+                                <div class="role-desc">إدارة العمل اليومي</div>
+                            </div>
+                            <div class="role-card" data-role="reception" onclick="selectRole('reception')">
+                                <div class="role-icon">🖥️</div>
+                                <div class="role-name">مهندس استقبال</div>
+                                <div class="role-desc">استقبال وفحص السيارات</div>
+                            </div>
+                            <div class="role-card selected" data-role="technician" onclick="selectRole('technician')">
+                                <div class="role-icon">🔧</div>
+                                <div class="role-name">فني</div>
+                                <div class="role-desc">تنفيذ أوامر الشغل</div>
+                            </div>
+                            <div class="role-card" data-role="warehouse" onclick="selectRole('warehouse')">
+                                <div class="role-icon">📦</div>
+                                <div class="role-name">أمين مخزن</div>
+                                <div class="role-desc">إدارة المخزون</div>
+                            </div>
+                            <div class="role-card" data-role="treasurer" onclick="selectRole('treasurer')">
+                                <div class="role-icon">💰</div>
+                                <div class="role-name">أمين خزينة</div>
+                                <div class="role-desc">إدارة المالية</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="selectedRole" value="technician">
+
+                        <!-- Permissions -->
+                        <h3 class="mb-4">🔐 الصلاحيات</h3>
+                        <div class="permissions-grid mb-6" id="permissionsGrid">
+                            <!-- Will be populated by JS -->
+                        </div>
+
+                        <!-- Status -->
+                        <div class="form-group mb-6">
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" id="isActive" checked style="width:18px;height:18px;accent-color:var(--accent)">
+                                <span>الموظف نشط</span>
+                            </label>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex gap-3">
+                            <button type="submit" class="btn btn-primary">
+                                <span id="submitText">💾 حفظ الموظف</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="history.back()">إلغاء</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/i18n/ar.js"></script>
+    <script src="../../assets/js/i18n/en.js"></script>
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script src="../../assets/js/config/supabase.js"></script>
+    <script src="../../assets/js/auth/auth.js"></script>
+    <script src="../../assets/js/utils/ui.js"></script>
+    <script src="../../assets/js/components/sidebar.js"></script>
+
+    <script>
+        let editId = null;
+        let currentUser = null;
+
+        const allPermissions = [
+            { key: 'customers_view', label: 'عرض العملاء', group: 'customers' },
+            { key: 'customers_create', label: 'إضافة عملاء', group: 'customers' },
+            { key: 'customers_edit', label: 'تعديل العملاء', group: 'customers' },
+            { key: 'quotations_view', label: 'عرض المقايسات', group: 'quotations' },
+            { key: 'quotations_create', label: 'إنشاء مقايسات', group: 'quotations' },
+            { key: 'workorders_view', label: 'عرض أوامر الشغل', group: 'workorders' },
+            { key: 'workorders_create', label: 'إنشاء أوامر شغل', group: 'workorders' },
+            { key: 'workorders_edit', label: 'تعديل أوامر الشغل', group: 'workorders' },
+            { key: 'invoices_view', label: 'عرض الفواتير', group: 'invoices' },
+            { key: 'invoices_create', label: 'إنشاء فواتير', group: 'invoices' },
+            { key: 'payments_receive', label: 'استلام مدفوعات', group: 'payments' },
+            { key: 'inventory_view', label: 'عرض المخزون', group: 'inventory' },
+            { key: 'inventory_manage', label: 'إدارة المخزون', group: 'inventory' },
+            { key: 'treasury_view', label: 'عرض الخزينة', group: 'treasury' },
+            { key: 'treasury_manage', label: 'إدارة الخزينة', group: 'treasury' },
+            { key: 'reports_view', label: 'عرض التقارير', group: 'reports' },
+            { key: 'employees_view', label: 'عرض الموظفين', group: 'employees' },
+            { key: 'employees_manage', label: 'إدارة الموظفين', group: 'employees' },
+            { key: 'settings_manage', label: 'إدارة الإعدادات', group: 'settings' }
+        ];
+
+        const rolePermissions = {
+            admin: allPermissions.map(p => p.key),
+            manager: ['customers_view', 'customers_create', 'customers_edit', 'quotations_view', 'quotations_create', 'workorders_view', 'workorders_create', 'workorders_edit', 'invoices_view', 'invoices_create', 'payments_receive', 'inventory_view', 'inventory_manage', 'treasury_view', 'reports_view', 'employees_view'],
+            reception: ['customers_view', 'customers_create', 'customers_edit', 'quotations_view', 'quotations_create', 'workorders_view', 'workorders_create'],
+            technician: ['workorders_view', 'workorders_edit', 'inventory_view'],
+            warehouse: ['inventory_view', 'inventory_manage'],
+            treasurer: ['invoices_view', 'payments_receive', 'treasury_view', 'treasury_manage', 'reports_view']
+        };
+
+        async function init() {
+            i18n.init();
+            const { session, user } = await auth.init();
+            if (!session) { window.location.href = '../../index.html'; return; }
+            currentUser = user;
+            Sidebar.render(user);
+
+            renderPermissions();
+            
+            // Check if editing
+            const params = new URLSearchParams(window.location.search);
+            editId = params.get('id');
+            if (editId) {
+                document.getElementById('pageTitle').textContent = 'تعديل موظف';
+                document.getElementById('submitText').textContent = '💾 تحديث الموظف';
+                document.getElementById('password').removeAttribute('required');
+                document.getElementById('password').placeholder = 'اتركه فارغاً للإبقاء على كلمة المرور الحالية';
+                await loadEmployee();
+            }
+
+            selectRole('technician');
+        }
+
+        function renderPermissions() {
+            const grid = document.getElementById('permissionsGrid');
+            grid.innerHTML = allPermissions.map(p => `
+                <div class="permission-item">
+                    <input type="checkbox" id="perm_${p.key}" data-permission="${p.key}">
+                    <label for="perm_${p.key}">${p.label}</label>
+                </div>
+            `).join('');
+        }
+
+        function selectRole(role) {
+            document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+            document.querySelector(`.role-card[data-role="${role}"]`).classList.add('selected');
+            document.getElementById('selectedRole').value = role;
+
+            // Set default permissions for role
+            const perms = rolePermissions[role] || [];
+            document.querySelectorAll('[data-permission]').forEach(cb => {
+                cb.checked = perms.includes(cb.dataset.permission);
+            });
+        }
+
+        async function loadEmployee() {
+            try {
+                const { data, error } = await db.from('users').select('*').eq('id', editId).single();
+                if (error) throw error;
+
+                document.getElementById('fullName').value = data.full_name || '';
+                document.getElementById('email').value = data.email || '';
+                document.getElementById('email').disabled = true;
+                document.getElementById('phone').value = data.phone || '';
+                document.getElementById('isActive').checked = data.is_active !== false;
+                
+                if (data.role) selectRole(data.role);
+                
+                // Load custom permissions if any
+                if (data.permissions) {
+                    document.querySelectorAll('[data-permission]').forEach(cb => {
+                        cb.checked = data.permissions.includes(cb.dataset.permission);
+                    });
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+                alert('خطأ في تحميل بيانات الموظف');
+            }
+        }
+
+        document.getElementById('employeeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('selectedRole').value;
+            const isActive = document.getElementById('isActive').checked;
+            
+            // Get selected permissions
+            const permissions = [];
+            document.querySelectorAll('[data-permission]:checked').forEach(cb => {
+                permissions.push(cb.dataset.permission);
+            });
+
+            try {
+                if (editId) {
+                    // Update existing user
+                    const { error } = await db.from('users').update({
+                        full_name: fullName,
+                        phone,
+                        role,
+                        is_active: isActive,
+                        permissions,
+                        updated_at: new Date().toISOString()
+                    }).eq('id', editId);
+
+                    if (error) throw error;
+                    alert('تم تحديث الموظف بنجاح');
+                } else {
+                    // Create new user via Supabase Auth
+                    const { data: authData, error: authError } = await supabase.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            data: { full_name: fullName, role }
+                        }
+                    });
+
+                    if (authError) throw authError;
+
+                    // Insert into users table
+                    const { error: userError } = await db.from('users').insert({
+                        id: authData.user.id,
+                        email,
+                        full_name: fullName,
+                        phone,
+                        role,
+                        is_active: isActive,
+                        permissions
+                    });
+
+                    if (userError) throw userError;
+                    alert('تم إضافة الموظف بنجاح');
+                }
+
+                window.location.href = 'list.html';
+            } catch (error) {
+                console.error('Save error:', error);
+                alert('خطأ: ' + error.message);
+            }
+        });
+
+        init();
+    </script>
+</body>
+
+</html>
