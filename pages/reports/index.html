@@ -84,10 +84,10 @@
                         <button class="btn btn-primary" onclick="loadReports()">تحديث</button>
                     </div>
                     <div class="tabs">
-                        <button class="tab-btn active" onclick="setPreset('today')">اليوم</button>
-                        <button class="tab-btn" onclick="setPreset('week')">هذا الأسبوع</button>
-                        <button class="tab-btn" onclick="setPreset('month')">هذا الشهر</button>
-                        <button class="tab-btn" onclick="setPreset('year')">هذا العام</button>
+                        <button class="tab-btn" onclick="setPreset('today', this)">اليوم</button>
+                        <button class="tab-btn" onclick="setPreset('week', this)">هذا الأسبوع</button>
+                        <button class="tab-btn active" onclick="setPreset('month', this)">هذا الشهر</button>
+                        <button class="tab-btn" onclick="setPreset('year', this)">هذا العام</button>
                     </div>
                 </div>
 
@@ -212,7 +212,7 @@
             return new Date(date).toLocaleDateString('ar-EG');
         }
 
-        function setPreset(preset) {
+        function setPreset(preset, btn) {
             const today = new Date();
             let from, to = today.toISOString().split('T')[0];
             
@@ -235,8 +235,13 @@
             document.getElementById('dateTo').value = to;
             
             // Update active tab
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if (btn) {
+                btn.classList.add('active');
+            } else {
+                // Default to month tab when called from init
+                document.querySelector('.tab-btn:nth-child(3)')?.classList.add('active');
+            }
             
             loadReports();
         }
