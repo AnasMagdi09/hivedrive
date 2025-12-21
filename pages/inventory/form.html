@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveDrive - إضافة صنف</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <link rel="stylesheet" href="../../assets/css/rtl.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <header class="header" id="header">
+                <div class="header-left">
+                    <a href="list.html" class="btn btn-icon btn-ghost">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="19" y1="12" x2="5" y2="12" />
+                            <polyline points="12 19 5 12 12 5" />
+                        </svg>
+                    </a>
+                    <h1 class="page-title" id="pageTitle">إضافة صنف جديد</h1>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="card" style="max-width: 800px;">
+                    <div class="card-body">
+                        <form id="partForm">
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="form-group">
+                                    <label class="form-label required">اسم الصنف</label>
+                                    <input type="text" class="form-input" id="name" name="name" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label required">رمز الصنف (SKU)</label>
+                                    <input type="text" class="form-input" id="sku" name="sku" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">الفئة</label>
+                                    <select class="form-select" id="category" name="category">
+                                        <option value="">اختر الفئة</option>
+                                        <option value="filters">فلاتر</option>
+                                        <option value="oils">زيوت</option>
+                                        <option value="brakes">فرامل</option>
+                                        <option value="electrical">كهرباء</option>
+                                        <option value="engine">محرك</option>
+                                        <option value="suspension">تعليق</option>
+                                        <option value="tires">إطارات</option>
+                                        <option value="accessories">إكسسوارات</option>
+                                        <option value="other">أخرى</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">الوحدة</label>
+                                    <select class="form-select" id="unit" name="unit">
+                                        <option value="piece">قطعة</option>
+                                        <option value="liter">لتر</option>
+                                        <option value="set">طقم</option>
+                                        <option value="meter">متر</option>
+                                        <option value="kg">كجم</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label required">سعر الشراء</label>
+                                    <input type="number" class="form-input" id="cost_price" name="cost_price"
+                                        step="0.01" min="0" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label required">سعر البيع</label>
+                                    <input type="number" class="form-input" id="sell_price" name="sell_price"
+                                        step="0.01" min="0" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">الحد الأدنى للمخزون</label>
+                                    <input type="number" class="form-input" id="min_quantity" name="min_quantity"
+                                        min="0" value="5">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">الكمية الأولية</label>
+                                    <input type="number" class="form-input" id="initial_quantity"
+                                        name="initial_quantity" min="0" value="0">
+                                </div>
+
+                                <div class="form-group col-span-2">
+                                    <label class="form-label">ملاحظات</label>
+                                    <textarea class="form-textarea" id="notes" name="notes" rows="2"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-4 justify-end mt-6">
+                                <a href="list.html" class="btn btn-secondary">إلغاء</a>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">حفظ الصنف</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/i18n/ar.js"></script>
+    <script src="../../assets/js/i18n/en.js"></script>
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script src="../../assets/js/config/supabase.js"></script>
+    <script src="../../assets/js/auth/auth.js"></script>
+    <script src="../../assets/js/utils/ui.js"></script>
+    <script src="../../assets/js/utils/api.js"></script>
+    <script src="../../assets/js/components/sidebar.js"></script>
+    <script src="../../assets/js/modules/inventory.js"></script>
+
+    <script>
+        let partId = null;
+
+        async function init() {
+            i18n.init();
+            const { session, user } = await auth.init();
+            if (!session) { window.location.href = '../../index.html'; return; }
+            Sidebar.render(user);
+
+            const params = new URLSearchParams(window.location.search);
+            partId = params.get('id');
+
+            if (partId) {
+                document.getElementById('pageTitle').textContent = 'تعديل بيانات الصنف';
+                await loadPart();
+            }
+        }
+
+        async function loadPart() {
+            const part = await Inventory.getById(partId);
+            if (!part) { UI.toast('الصنف غير موجود', 'error'); return; }
+
+            Object.keys(part).forEach(key => {
+                const el = document.getElementById(key);
+                if (el && part[key] !== null && part[key] !== undefined) el.value = part[key];
+            });
+        }
+
+        document.getElementById('partForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            // Convert numbers
+            data.cost_price = parseFloat(data.cost_price) || 0;
+            data.sell_price = parseFloat(data.sell_price) || 0;
+            data.min_quantity = parseInt(data.min_quantity) || 0;
+
+            const initialQuantity = parseInt(data.initial_quantity) || 0;
+            delete data.initial_quantity;
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="spinner sm"></div>';
+
+            let result;
+            if (partId) {
+                result = await Inventory.update(partId, data);
+            } else {
+                result = await Inventory.create(data, initialQuantity);
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'حفظ الصنف';
+
+            if (result) window.location.href = 'list.html';
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

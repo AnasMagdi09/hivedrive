@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveDrive - تفاصيل أمر الشراء</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <link rel="stylesheet" href="../../assets/css/rtl.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <header class="header" id="header">
+                <div class="header-left">
+                    <a href="list.html" class="btn btn-icon btn-ghost">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="19" y1="12" x2="5" y2="12" />
+                            <polyline points="12 19 5 12 12 5" />
+                        </svg>
+                    </a>
+                    <h1 class="page-title">تفاصيل أمر الشراء</h1>
+                </div>
+                <div class="header-right">
+                    <span class="badge" id="statusBadge">-</span>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Order Info -->
+                <div class="card mb-6">
+                    <div class="card-header">
+                        <h3>معلومات الأمر</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid grid-cols-3 gap-6">
+                            <div>
+                                <label class="text-muted text-sm">رقم الأمر</label>
+                                <p class="font-semibold" id="poNumber">-</p>
+                            </div>
+                            <div>
+                                <label class="text-muted text-sm">المورد</label>
+                                <p class="font-semibold" id="supplierName">-</p>
+                            </div>
+                            <div>
+                                <label class="text-muted text-sm">تاريخ الإنشاء</label>
+                                <p class="font-semibold" id="createdAt">-</p>
+                            </div>
+                            <div>
+                                <label class="text-muted text-sm">تاريخ التسليم المتوقع</label>
+                                <p class="font-semibold" id="expectedDate">-</p>
+                            </div>
+                            <div>
+                                <label class="text-muted text-sm">الإجمالي</label>
+                                <p class="font-semibold text-primary text-lg" id="totalAmount">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items -->
+                <div class="card mb-6">
+                    <div class="card-header">
+                        <h3>الأصناف</h3>
+                    </div>
+                    <div class="card-body" id="itemsContainer">
+                        <div class="flex justify-center">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>تغيير الحالة</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="flex gap-4 flex-wrap">
+                            <button class="btn btn-secondary" onclick="updateStatus('pending')" id="btnPending">
+                                انتظار
+                            </button>
+                            <button class="btn btn-info" onclick="updateStatus('approved')" id="btnApproved">
+                                موافقة
+                            </button>
+                            <button class="btn btn-primary" onclick="updateStatus('ordered')" id="btnOrdered">
+                                تم الطلب
+                            </button>
+                            <button class="btn btn-success" onclick="updateStatus('received')" id="btnReceived">
+                                ✓ تم الاستلام (يحدث المخزون)
+                            </button>
+                            <button class="btn btn-danger" onclick="updateStatus('cancelled')" id="btnCancelled">
+                                إلغاء
+                            </button>
+                        </div>
+                        <p class="text-muted text-sm mt-4">
+                            <strong>ملاحظة:</strong> عند تغيير الحالة لـ "تم الاستلام"، سيتم تحديث كميات المخزون
+                            تلقائياً.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="card mt-6" id="notesCard" style="display: none;">
+                    <div class="card-header">
+                        <h3>ملاحظات</h3>
+                    </div>
+                    <div class="card-body">
+                        <p id="notes">-</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/i18n/ar.js"></script>
+    <script src="../../assets/js/i18n/en.js"></script>
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script src="../../assets/js/config/supabase.js"></script>
+    <script src="../../assets/js/auth/auth.js"></script>
+    <script src="../../assets/js/utils/ui.js"></script>
+    <script src="../../assets/js/utils/api.js"></script>
+    <script src="../../assets/js/components/sidebar.js"></script>
+    <script src="../../assets/js/modules/purchases.js"></script>
+
+    <script>
+        let purchaseId = null;
+        let currentStatus = null;
+
+        async function init() {
+            i18n.init();
+            const { session, user } = await auth.init();
+            if (!session) { window.location.href = '../../index.html'; return; }
+            Sidebar.render(user);
+
+            const params = new URLSearchParams(window.location.search);
+            purchaseId = params.get('id');
+
+            if (!purchaseId) {
+                UI.toast('أمر الشراء غير موجود', 'error');
+                return;
+            }
+
+            await loadPurchase();
+        }
+
+        async function loadPurchase() {
+            try {
+                const { data: purchase, error } = await db
+                    .from('purchase_orders')
+                    .select('*, suppliers(name)')
+                    .eq('id', purchaseId)
+                    .single();
+
+                if (error) throw error;
+
+                // Display info
+                document.getElementById('poNumber').textContent = purchase.po_number || '-';
+                document.getElementById('supplierName').textContent = purchase.suppliers?.name || '-';
+                document.getElementById('createdAt').textContent = new Date(purchase.created_at).toLocaleDateString('ar-EG');
+                document.getElementById('expectedDate').textContent = purchase.expected_date
+                    ? new Date(purchase.expected_date).toLocaleDateString('ar-EG')
+                    : '-';
+                document.getElementById('totalAmount').textContent = UI.formatCurrency(purchase.total || 0);
+
+                // Status
+                currentStatus = purchase.status;
+                updateStatusBadge(purchase.status);
+
+                // Notes
+                if (purchase.notes) {
+                    document.getElementById('notesCard').style.display = 'block';
+                    document.getElementById('notes').textContent = purchase.notes;
+                }
+
+                // Load items
+                await loadItems();
+
+            } catch (error) {
+                console.error('Load purchase error:', error);
+                UI.toast('خطأ في تحميل البيانات', 'error');
+            }
+        }
+
+        async function loadItems() {
+            try {
+                const { data: items } = await db
+                    .from('purchase_order_items')
+                    .select('*, parts(name, sku)')
+                    .eq('purchase_order_id', purchaseId);
+
+                const container = document.getElementById('itemsContainer');
+
+                if (!items || items.length === 0) {
+                    container.innerHTML = '<p class="text-muted">لا توجد أصناف</p>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>الصنف</th>
+                                    <th>الكود</th>
+                                    <th>الكمية المطلوبة</th>
+                                    <th>الكمية المستلمة</th>
+                                    <th>سعر الوحدة</th>
+                                    <th>الإجمالي</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${items.map(item => `
+                                    <tr>
+                                        <td>${item.parts?.name || '-'}</td>
+                                        <td><code>${item.parts?.sku || '-'}</code></td>
+                                        <td>${item.quantity_ordered}</td>
+                                        <td>${item.quantity_received || 0}</td>
+                                        <td>${UI.formatCurrency(item.unit_price)}</td>
+                                        <td class="font-semibold">${UI.formatCurrency(item.total)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Load items error:', error);
+            }
+        }
+
+        function updateStatusBadge(status) {
+            const badge = document.getElementById('statusBadge');
+            const statusMap = {
+                draft: { text: 'مسودة', class: 'badge-secondary' },
+                pending: { text: 'انتظار', class: 'badge-warning' },
+                approved: { text: 'موافق عليه', class: 'badge-info' },
+                ordered: { text: 'تم الطلب', class: 'badge-primary' },
+                partial: { text: 'استلام جزئي', class: 'badge-warning' },
+                received: { text: 'تم الاستلام', class: 'badge-success' },
+                cancelled: { text: 'ملغي', class: 'badge-danger' }
+            };
+
+            const info = statusMap[status] || { text: status, class: 'badge-secondary' };
+            badge.textContent = info.text;
+            badge.className = `badge ${info.class}`;
+        }
+
+        async function updateStatus(newStatus) {
+            if (currentStatus === 'received' && newStatus !== 'received') {
+                UI.toast('لا يمكن تغيير حالة أمر مستلم', 'warning');
+                return;
+            }
+
+            if (currentStatus === 'cancelled') {
+                UI.toast('لا يمكن تغيير حالة أمر ملغي', 'warning');
+                return;
+            }
+
+            const confirmed = await UI.confirm(`هل تريد تغيير الحالة إلى "${getStatusText(newStatus)}"؟`);
+            if (!confirmed) return;
+
+            try {
+                const result = await Purchases.updateStatus(purchaseId, newStatus);
+                if (result) {
+                    currentStatus = newStatus;
+                    updateStatusBadge(newStatus);
+
+                    if (newStatus === 'received') {
+                        UI.toast('تم الاستلام وتحديث المخزون بنجاح!', 'success');
+                    }
+
+                    await loadItems();
+                }
+            } catch (error) {
+                console.error('Update status error:', error);
+                UI.toast('خطأ في تحديث الحالة', 'error');
+            }
+        }
+
+        function getStatusText(status) {
+            const map = {
+                pending: 'انتظار',
+                approved: 'موافق عليه',
+                ordered: 'تم الطلب',
+                received: 'تم الاستلام',
+                cancelled: 'ملغي'
+            };
+            return map[status] || status;
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

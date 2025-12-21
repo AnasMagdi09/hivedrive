@@ -130,13 +130,16 @@ const WorkOrders = {
     },
 
     /**
-     * Update status
+     * Update status and manage inventory
      */
     async updateStatus(id, status, additionalData = {}) {
         try {
             const updateData = { status, ...additionalData };
 
-            if (status === 'completed') {
+            if (status === 'in_progress') {
+                // Deduct parts from inventory when work starts
+                await this.deductInventoryForWorkOrder(id);
+            } else if (status === 'completed') {
                 updateData.actual_completion = new Date().toISOString();
             } else if (status === 'delivered') {
                 updateData.delivered_at = new Date().toISOString();
@@ -150,6 +153,60 @@ const WorkOrders = {
             console.error('Update status error:', error);
             UI.toast(error.message || t('error'), 'error');
             return false;
+        }
+    },
+
+    /**
+     * Deduct inventory quantities for work order parts
+     */
+    async deductInventoryForWorkOrder(workOrderId) {
+        try {
+            const { data: items } = await db
+                .from('work_order_items')
+                .select('part_id, quantity, item_type')
+                .eq('work_order_id', workOrderId);
+
+            if (!items || items.length === 0) return;
+
+            const { data: wo } = await db
+                .from('work_orders')
+                .select('branch_id')
+                .eq('id', workOrderId)
+                .single();
+
+            const branchId = wo?.branch_id || auth.getUser()?.branch_id;
+
+            // Deduct each part item from inventory
+            for (const item of items) {
+                if (item.item_type !== 'part' || !item.part_id) continue;
+
+                const { data: inventory } = await db
+                    .from('inventory')
+                    .select('id, quantity')
+                    .eq('part_id', item.part_id)
+                    .eq('branch_id', branchId)
+                    .maybeSingle();
+
+                if (inventory) {
+                    const newQty = Math.max(0, inventory.quantity - item.quantity);
+                    await db.from('inventory')
+                        .update({ quantity: newQty })
+                        .eq('id', inventory.id);
+
+                    // Log stock movement
+                    await db.from('stock_movements').insert({
+                        branch_id: branchId,
+                        part_id: item.part_id,
+                        movement_type: 'work_order_out',
+                        quantity: item.quantity,
+                        reference_type: 'work_order',
+                        reference_id: workOrderId,
+                        created_by: auth.getUser()?.id
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Deduct inventory error:', error);
         }
     },
 

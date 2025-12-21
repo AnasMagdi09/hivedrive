@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HiveDrive - المخزون</title>
+    <title>HiveDrive - المشتريات</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -30,7 +30,7 @@
                             <line x1="3" y1="18" x2="21" y2="18" />
                         </svg>
                     </button>
-                    <h1 class="page-title">المخزون وقطع الغيار</h1>
+                    <h1 class="page-title">المشتريات</h1>
                 </div>
                 <div class="header-right">
                     <a href="form.html" class="btn btn-primary">
@@ -39,7 +39,7 @@
                             <line x1="12" y1="5" x2="12" y2="19" />
                             <line x1="5" y1="12" x2="19" y2="12" />
                         </svg>
-                        <span>إضافة قطعة</span>
+                        <span>أمر شراء جديد</span>
                     </a>
                 </div>
             </header>
@@ -50,29 +50,29 @@
                     <div class="stat-card">
                         <div class="stat-icon primary">📦</div>
                         <div class="stat-content">
-                            <span class="stat-label">إجمالي الأصناف</span>
+                            <span class="stat-label">إجمالي الأوامر</span>
                             <span class="stat-value" id="statTotal">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning">⏳</div>
+                        <div class="stat-content">
+                            <span class="stat-label">في الانتظار</span>
+                            <span class="stat-value" id="statPending">0</span>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon success">✓</div>
                         <div class="stat-content">
-                            <span class="stat-label">متوفر</span>
-                            <span class="stat-value" id="statInStock">0</span>
+                            <span class="stat-label">تم الاستلام</span>
+                            <span class="stat-value" id="statReceived">0</span>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon warning">⚠</div>
+                        <div class="stat-icon danger">💰</div>
                         <div class="stat-content">
-                            <span class="stat-label">مخزون منخفض</span>
-                            <span class="stat-value" id="statLowStock">0</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon danger">✗</div>
-                        <div class="stat-content">
-                            <span class="stat-label">نفذ</span>
-                            <span class="stat-value" id="statOutStock">0</span>
+                            <span class="stat-label">إجمالي المشتريات</span>
+                            <span class="stat-value" id="statAmount">0</span>
                         </div>
                     </div>
                 </div>
@@ -89,30 +89,22 @@
                                     </svg>
                                 </span>
                                 <input type="search" class="form-input has-icon-start" id="searchInput"
-                                    placeholder="بحث بالكود أو الاسم...">
+                                    placeholder="بحث برقم الأمر...">
                             </div>
-                            <select class="form-select" id="categoryFilter" style="width: 180px;">
-                                <option value="">كل الفئات</option>
-                                <option value="engine">محرك</option>
-                                <option value="electrical">كهرباء</option>
-                                <option value="body">بودي</option>
-                                <option value="suspension">تعليق</option>
-                                <option value="brakes">فرامل</option>
-                                <option value="oils">زيوت</option>
-                                <option value="filters">فلاتر</option>
-                            </select>
-                            <select class="form-select" id="stockFilter" style="width: 150px;">
+                            <select class="form-select" id="statusFilter" style="width: 180px;">
                                 <option value="">كل الحالات</option>
-                                <option value="in_stock">متوفر</option>
-                                <option value="low">منخفض</option>
-                                <option value="out">نفذ</option>
+                                <option value="pending">في الانتظار</option>
+                                <option value="approved">تمت الموافقة</option>
+                                <option value="ordered">تم الطلب</option>
+                                <option value="received">تم الاستلام</option>
+                                <option value="cancelled">ملغي</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <div class="card-body" id="partsContainer">
+                    <div class="card-body" id="purchasesContainer">
                         <div class="flex justify-center">
                             <div class="spinner"></div>
                         </div>
@@ -131,7 +123,7 @@
     <script src="../../assets/js/utils/ui.js"></script>
     <script src="../../assets/js/utils/api.js"></script>
     <script src="../../assets/js/components/sidebar.js"></script>
-    <script src="../../assets/js/modules/inventory.js"></script>
+    <script src="../../assets/js/modules/purchases.js"></script>
 
     <script>
         async function init() {
@@ -139,24 +131,37 @@
             const { session, user } = await auth.init();
             if (!session) { window.location.href = '../../index.html'; return; }
             Sidebar.render(user);
-            await loadParts();
+            await loadStats();
+            await loadPurchases();
         }
 
-        async function loadParts() {
+        async function loadStats() {
+            const { count: total } = await db.from('purchase_orders').select('*', { count: 'exact', head: true });
+            const { count: pending } = await db.from('purchase_orders').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+            const { count: received } = await db.from('purchase_orders').select('*', { count: 'exact', head: true }).eq('status', 'received');
+            const { data: amounts } = await db.from('purchase_orders').select('total');
+            const totalAmount = (amounts || []).reduce((sum, p) => sum + (p.total || 0), 0);
+
+            document.getElementById('statTotal').textContent = total || 0;
+            document.getElementById('statPending').textContent = pending || 0;
+            document.getElementById('statReceived').textContent = received || 0;
+            document.getElementById('statAmount').textContent = UI.formatCurrency(totalAmount);
+        }
+
+        async function loadPurchases() {
             const search = document.getElementById('searchInput').value;
-            const category = document.getElementById('categoryFilter').value;
+            const status = document.getElementById('statusFilter').value;
 
             const options = { limit: 30 };
-            if (category) options.filters = { category };
-            if (search) { options.search = search; options.searchFields = ['sku', 'name']; }
+            if (status) options.filters = { status };
+            if (search) { options.search = search; options.searchFields = ['order_number']; }
 
-            const { data } = await Inventory.loadParts(options);
-            Inventory.renderPartsTable(data, document.getElementById('partsContainer'));
+            const { data } = await Purchases.loadList(options);
+            Purchases.renderTable(data, document.getElementById('purchasesContainer'));
         }
 
-        document.getElementById('searchInput').addEventListener('input', debounce(loadParts, 300));
-        document.getElementById('categoryFilter').addEventListener('change', loadParts);
-        document.getElementById('stockFilter').addEventListener('change', loadParts);
+        document.getElementById('searchInput').addEventListener('input', debounce(loadPurchases, 300));
+        document.getElementById('statusFilter').addEventListener('change', loadPurchases);
 
         function debounce(func, wait) {
             let timeout;

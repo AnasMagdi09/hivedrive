@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveDrive - تفاصيل الفاتورة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <link rel="stylesheet" href="../../assets/css/rtl.css">
+    <style>
+        .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--primary); }
+        .invoice-number-box { background: var(--primary); color: white; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 1.25rem; font-weight: 700; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .info-box { background: var(--bg-secondary); padding: 1rem; border-radius: 8px; }
+        .info-box label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+        .info-box span { font-weight: 600; font-size: 1rem; }
+        .totals-box { background: var(--bg-secondary); padding: 1.5rem; border-radius: 8px; max-width: 400px; }
+        .total-row { display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--border-color); }
+        .total-row:last-child { border-bottom: none; }
+        .total-row.grand { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+        .total-row.paid { color: var(--success); }
+        .total-row.remaining { color: var(--danger); }
+        .section-title { font-size: 1rem; font-weight: 700; margin: 1.5rem 0 1rem; padding: 0.5rem 1rem; background: var(--bg-secondary); border-right: 4px solid var(--primary); }
+        .payments-table { width: 100%; border-collapse: collapse; }
+        .payments-table th { background: var(--bg-dark); color: white; padding: 0.75rem; text-align: right; }
+        .payments-table td { padding: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .action-buttons { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2rem; }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <header class="header" id="header">
+                <div class="header-left">
+                    <button class="btn btn-icon btn-ghost" id="mobileMenuBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" />
+                        </svg>
+                    </button>
+                    <a href="list.html" class="btn btn-ghost">← رجوع</a>
+                    <h1 class="page-title">تفاصيل الفاتورة</h1>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-secondary" onclick="window.print()">🖨️ طباعة</button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="card">
+                    <div class="card-body" id="invoiceDetails">
+                        <div class="flex justify-center py-8"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-header">
+            <h3 class="modal-title">تسجيل دفعة</h3>
+            <button class="modal-close" onclick="UI.hideModal('paymentModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label class="form-label required">المبلغ</label>
+                    <input type="number" class="form-input" id="paymentAmount" step="0.01" required>
+                    <small class="text-muted">المتبقي: <span id="remainingDisplay">0</span> ج.م</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">طريقة الدفع</label>
+                    <select class="form-select" id="paymentMethod" required>
+                        <option value="cash">نقدي</option>
+                        <option value="bank_transfer">تحويل بنكي</option>
+                        <option value="credit_card">بطاقة ائتمان</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ملاحظات</label>
+                    <textarea class="form-textarea" id="paymentNotes" rows="2"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="UI.hideModal('paymentModal')">إلغاء</button>
+            <button class="btn btn-success" onclick="submitPayment()">💰 تسجيل الدفعة</button>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/i18n/ar.js"></script>
+    <script src="../../assets/js/i18n/en.js"></script>
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script src="../../assets/js/config/supabase.js"></script>
+    <script src="../../assets/js/auth/auth.js"></script>
+    <script src="../../assets/js/utils/ui.js"></script>
+    <script src="../../assets/js/utils/api.js"></script>
+    <script src="../../assets/js/components/sidebar.js"></script>
+    <script src="../../assets/js/modules/finance.js"></script>
+
+    <script>
+        let invoice = null;
+        const params = new URLSearchParams(window.location.search);
+        const invoiceId = params.get('id');
+
+        async function init() {
+            i18n.init();
+            const { session, user } = await auth.init();
+            if (!session) { window.location.href = '../../index.html'; return; }
+            Sidebar.render(user);
+            if (!invoiceId) {
+                document.getElementById('invoiceDetails').innerHTML = '<p class="text-center text-danger">لم يتم تحديد الفاتورة</p>';
+                return;
+            }
+            await loadInvoice();
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('ar-EG', { minimumFractionDigits: 2 }).format(amount || 0) + ' ج.م';
+        }
+
+        function formatDate(date) {
+            if (!date) return '-';
+            return new Date(date).toLocaleDateString('ar-EG');
+        }
+
+        function getStatusBadge(status) {
+            const map = {
+                draft: { class: 'badge-gray', text: 'مسودة' },
+                issued: { class: 'badge-warning', text: 'صادرة' },
+                partial: { class: 'badge-primary', text: 'مدفوعة جزئياً' },
+                paid: { class: 'badge-success', text: 'مدفوعة بالكامل' },
+                cancelled: { class: 'badge-danger', text: 'ملغية' }
+            };
+            const s = map[status] || { class: 'badge-gray', text: status };
+            return `<span class="badge ${s.class}">${s.text}</span>`;
+        }
+
+        async function loadInvoice() {
+            try {
+                const { data, error } = await db
+                    .from('invoices')
+                    .select(`*, customers(id, name, phone, address), work_orders(order_number), payments(*)`)
+                    .eq('id', invoiceId)
+                    .single();
+
+                if (error) throw error;
+                invoice = data;
+                renderInvoice();
+            } catch (error) {
+                console.error('Load error:', error);
+                document.getElementById('invoiceDetails').innerHTML = '<p class="text-center text-danger">خطأ في تحميل الفاتورة</p>';
+            }
+        }
+
+        function renderInvoice() {
+            const inv = invoice;
+            const payments = inv.payments || [];
+
+            document.getElementById('invoiceDetails').innerHTML = `
+                <div class="invoice-header">
+                    <div>
+                        <div class="invoice-number-box">🧾 ${inv.invoice_number}</div>
+                        <p class="text-muted mt-2">تاريخ الإصدار: ${formatDate(inv.issued_at || inv.created_at)}</p>
+                        ${inv.work_orders ? `<p class="text-muted">أمر شغل: ${inv.work_orders.order_number}</p>` : ''}
+                    </div>
+                    <div class="text-left">
+                        ${getStatusBadge(inv.status)}
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-box"><label>العميل</label><span>${inv.customers?.name || '-'}</span></div>
+                    <div class="info-box"><label>الهاتف</label><span>${inv.customers?.phone || '-'}</span></div>
+                    <div class="info-box"><label>العنوان</label><span>${inv.customers?.address || '-'}</span></div>
+                </div>
+
+                <div class="grid grid-cols-2 mt-6" style="gap: 2rem;">
+                    <div class="totals-box">
+                        <h4 style="margin-bottom: 1rem; font-weight: 700;">ملخص الفاتورة</h4>
+                        <div class="total-row"><span>المجموع الفرعي</span><span>${formatCurrency(inv.subtotal)}</span></div>
+                        ${inv.discount_amount > 0 ? `<div class="total-row"><span>الخصم</span><span>- ${formatCurrency(inv.discount_amount)}</span></div>` : ''}
+                        ${inv.tax_amount > 0 ? `<div class="total-row"><span>الضريبة</span><span>${formatCurrency(inv.tax_amount)}</span></div>` : ''}
+                        <div class="total-row grand"><span>الإجمالي</span><span>${formatCurrency(inv.total)}</span></div>
+                        <div class="total-row paid"><span>المدفوع</span><span>${formatCurrency(inv.paid_amount || 0)}</span></div>
+                        <div class="total-row remaining"><span>المتبقي</span><span>${formatCurrency(inv.remaining_amount || 0)}</span></div>
+                    </div>
+
+                    <div>
+                        ${payments.length > 0 ? `
+                            <div class="section-title">سجل المدفوعات</div>
+                            <table class="payments-table">
+                                <thead>
+                                    <tr><th>التاريخ</th><th>المبلغ</th><th>الطريقة</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${payments.map(p => `
+                                        <tr>
+                                            <td>${formatDate(p.payment_date)}</td>
+                                            <td class="text-success font-semibold">${formatCurrency(p.amount)}</td>
+                                            <td>${p.payment_method === 'cash' ? 'نقدي' : p.payment_method === 'bank_transfer' ? 'تحويل بنكي' : 'بطاقة'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        ` : '<p class="text-muted">لا توجد مدفوعات مسجلة</p>'}
+                    </div>
+                </div>
+
+                ${inv.notes ? `<div class="section-title">ملاحظات</div><p style="background: #fffbeb; padding: 1rem; border-radius: 8px;">${inv.notes}</p>` : ''}
+
+                <div class="action-buttons">
+                    ${inv.status !== 'paid' && inv.status !== 'cancelled' ? `
+                        <button class="btn btn-success" onclick="showPaymentModal()">💰 تسجيل دفعة</button>
+                        <button class="btn btn-primary" onclick="payFullAmount()">✅ دفع كامل المبلغ</button>
+                    ` : ''}
+                    ${inv.status === 'paid' ? '<p class="text-success font-semibold">✅ تم سداد الفاتورة بالكامل</p>' : ''}
+                </div>
+            `;
+        }
+
+        function showPaymentModal() {
+            document.getElementById('paymentAmount').value = '';
+            document.getElementById('remainingDisplay').textContent = (invoice.remaining_amount || 0).toFixed(2);
+            document.getElementById('paymentAmount').max = invoice.remaining_amount || 0;
+            UI.showModal('paymentModal');
+        }
+
+        async function submitPayment() {
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const method = document.getElementById('paymentMethod').value;
+            const notes = document.getElementById('paymentNotes').value;
+
+            if (!amount || amount <= 0) {
+                UI.toast('يرجى إدخال مبلغ صحيح', 'error');
+                return;
+            }
+
+            if (amount > invoice.remaining_amount) {
+                UI.toast('المبلغ أكبر من المتبقي', 'error');
+                return;
+            }
+
+            await processPayment(amount, method, notes);
+        }
+
+        async function payFullAmount() {
+            if (!confirm('هل تريد تسجيل دفع كامل المبلغ المتبقي؟')) return;
+            await processPayment(invoice.remaining_amount, 'cash', 'دفع كامل المبلغ');
+        }
+
+        async function processPayment(amount, method, notes) {
+            try {
+                const user = auth.getUser();
+
+                // Add payment
+                const { data: payment, error } = await db.from('payments').insert({
+                    invoice_id: invoiceId,
+                    amount: amount,
+                    payment_method: method,
+                    payment_date: new Date().toISOString().split('T')[0],
+                    notes: notes,
+                    received_by: user?.id,
+                    branch_id: user?.branch_id
+                }).select().single();
+
+                if (error) throw error;
+
+                // Update invoice
+                const newPaidAmount = (invoice.paid_amount || 0) + amount;
+                const newRemaining = invoice.total - newPaidAmount;
+                const newStatus = newRemaining <= 0 ? 'paid' : 'partial';
+
+                await db.from('invoices').update({
+                    paid_amount: newPaidAmount,
+                    remaining_amount: newRemaining,
+                    status: newStatus
+                }).eq('id', invoiceId);
+
+                // Add treasury transaction
+                await addToTreasury(amount, payment.id);
+
+                UI.hideModal('paymentModal');
+                UI.toast('تم تسجيل الدفعة بنجاح', 'success');
+                await loadInvoice();
+            } catch (error) {
+                console.error(error);
+                UI.toast('خطأ: ' + error.message, 'error');
+            }
+        }
+
+        async function addToTreasury(amount, paymentId) {
+            try {
+                const user = auth.getUser();
+                const branchId = user?.branch_id;
+
+                // Get or create treasury
+                let { data: treasury } = await db.from('treasury').select('*').eq('branch_id', branchId).maybeSingle();
+
+                if (!treasury) {
+                    const { data: newTreasury } = await db.from('treasury').insert({ branch_id: branchId, current_balance: 0 }).select().single();
+                    treasury = newTreasury;
+                }
+
+                const newBalance = (treasury.current_balance || 0) + amount;
+
+                // Add transaction
+                await db.from('treasury_transactions').insert({
+                    treasury_id: treasury.id,
+                    transaction_type: 'income',
+                    category: 'invoice_payment',
+                    amount: amount,
+                    balance_after: newBalance,
+                    reference_type: 'payment',
+                    reference_id: paymentId,
+                    description: 'دفعة فاتورة ' + invoice.invoice_number,
+                    transaction_date: new Date().toISOString().split('T')[0],
+                    created_by: user?.id
+                });
+
+                // Update treasury balance
+                await db.from('treasury').update({ current_balance: newBalance }).eq('id', treasury.id);
+            } catch (error) {
+                console.error('Treasury error:', error);
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

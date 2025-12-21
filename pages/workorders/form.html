@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveDrive - أمر شغل جديد</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <link rel="stylesheet" href="../../assets/css/rtl.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <header class="header" id="header">
+                <div class="header-left">
+                    <a href="list.html" class="btn btn-icon btn-ghost">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="19" y1="12" x2="5" y2="12" />
+                            <polyline points="12 19 5 12 12 5" />
+                        </svg>
+                    </a>
+                    <h1 class="page-title" id="pageTitle">إنشاء أمر شغل جديد</h1>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="card" style="max-width: 900px;">
+                    <div class="card-body">
+                        <form id="workorderForm">
+                            <!-- Customer & Vehicle Selection -->
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="form-group">
+                                    <label class="form-label required">العميل</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-input" id="customerSearch"
+                                            placeholder="ابحث بالاسم أو رقم الهاتف..." autocomplete="off">
+                                        <input type="hidden" id="customer_id" name="customer_id" required>
+                                    </div>
+                                    <div id="customerResults" class="dropdown-menu"
+                                        style="position: relative; width: 100%;"></div>
+                                    <div id="selectedCustomer" class="mt-2" style="display: none;">
+                                        <span class="badge badge-primary" id="customerBadge"></span>
+                                        <button type="button" class="btn btn-sm btn-ghost"
+                                            onclick="clearCustomer()">✕</button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label required">المركبة</label>
+                                    <select class="form-select" id="vehicle_id" name="vehicle_id" required>
+                                        <option value="">اختر المركبة</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label required">الأولوية</label>
+                                    <select class="form-select" id="priority" name="priority" required>
+                                        <option value="low">منخفضة</option>
+                                        <option value="normal" selected>عادية</option>
+                                        <option value="high">عالية</option>
+                                        <option value="urgent">عاجلة</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">تاريخ التسليم المتوقع</label>
+                                    <input type="date" class="form-input" id="estimated_delivery"
+                                        name="estimated_delivery">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">قراءة العداد (كم)</label>
+                                    <input type="number" class="form-input" id="mileage_in" name="mileage_in" min="0">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">مستوى الوقود</label>
+                                    <select class="form-select" id="fuel_level" name="fuel_level">
+                                        <option value="">اختر</option>
+                                        <option value="empty">فارغ</option>
+                                        <option value="quarter">ربع</option>
+                                        <option value="half">نصف</option>
+                                        <option value="three_quarter">ثلاثة أرباع</option>
+                                        <option value="full">مليء</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group col-span-2">
+                                    <label class="form-label required">شكوى العميل / وصف المشكلة</label>
+                                    <textarea class="form-textarea" id="customer_complaint" name="customer_complaint"
+                                        rows="3" required placeholder="اكتب شكوى العميل أو وصف للمشكلة..."></textarea>
+                                </div>
+
+                                <div class="form-group col-span-2">
+                                    <label class="form-label">ملاحظات إضافية</label>
+                                    <textarea class="form-textarea" id="notes" name="notes" rows="2"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-4 justify-end mt-6">
+                                <a href="list.html" class="btn btn-secondary">إلغاء</a>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">إنشاء أمر الشغل</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/i18n/ar.js"></script>
+    <script src="../../assets/js/i18n/en.js"></script>
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script src="../../assets/js/config/supabase.js"></script>
+    <script src="../../assets/js/auth/auth.js"></script>
+    <script src="../../assets/js/utils/ui.js"></script>
+    <script src="../../assets/js/utils/api.js"></script>
+    <script src="../../assets/js/components/sidebar.js"></script>
+    <script src="../../assets/js/modules/workorders.js"></script>
+    <script src="../../assets/js/modules/customers.js"></script>
+
+    <script>
+        async function init() {
+            i18n.init();
+            const { session, user } = await auth.init();
+            if (!session) { window.location.href = '../../index.html'; return; }
+            Sidebar.render(user);
+
+            // Set default delivery date (3 days)
+            const deliveryDate = new Date();
+            deliveryDate.setDate(deliveryDate.getDate() + 3);
+            document.getElementById('estimated_delivery').value = deliveryDate.toISOString().split('T')[0];
+        }
+
+        // Customer search
+        let searchTimeout;
+        document.getElementById('customerSearch').addEventListener('input', async (e) => {
+            clearTimeout(searchTimeout);
+            const query = e.target.value;
+            if (query.length < 2) { document.getElementById('customerResults').innerHTML = ''; return; }
+
+            searchTimeout = setTimeout(async () => {
+                const customers = await Customers.search(query);
+                const resultsDiv = document.getElementById('customerResults');
+
+                if (customers.length === 0) {
+                    resultsDiv.innerHTML = '<div class="dropdown-item">لا توجد نتائج</div>';
+                } else {
+                    resultsDiv.innerHTML = customers.map(c => `
+                        <div class="dropdown-item" onclick="selectCustomer('${c.id}', '${c.name}')">
+                            <span>${c.name}</span>
+                            <span class="text-muted text-sm">${c.phone || ''}</span>
+                        </div>
+                    `).join('');
+                }
+                resultsDiv.style.display = 'block';
+            }, 300);
+        });
+
+        async function selectCustomer(id, name) {
+            document.getElementById('customer_id').value = id;
+            document.getElementById('customerSearch').value = '';
+            document.getElementById('customerResults').style.display = 'none';
+            document.getElementById('selectedCustomer').style.display = 'block';
+            document.getElementById('customerBadge').textContent = name;
+
+            // Load customer vehicles
+            const { data: vehicles } = await db.from('vehicles').select('id, plate_number, brand, model').eq('customer_id', id);
+            const vehicleSelect = document.getElementById('vehicle_id');
+            vehicleSelect.innerHTML = '<option value="">اختر المركبة</option>' +
+                (vehicles || []).map(v => `<option value="${v.id}">${v.plate_number} - ${v.brand} ${v.model}</option>`).join('');
+        }
+
+        function clearCustomer() {
+            document.getElementById('customer_id').value = '';
+            document.getElementById('selectedCustomer').style.display = 'none';
+            document.getElementById('vehicle_id').innerHTML = '<option value="">اختر المركبة</option>';
+        }
+
+        document.getElementById('workorderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!document.getElementById('customer_id').value) {
+                UI.toast('يرجى اختيار العميل', 'error');
+                return;
+            }
+
+            if (!document.getElementById('vehicle_id').value) {
+                UI.toast('يرجى اختيار المركبة', 'error');
+                return;
+            }
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            // Convert numbers
+            if (data.mileage_in) data.mileage_in = parseInt(data.mileage_in);
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="spinner sm"></div>';
+
+            const result = await WorkOrders.create(data);
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'إنشاء أمر الشغل';
+
+            if (result) window.location.href = 'list.html';
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

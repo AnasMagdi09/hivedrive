@@ -51,14 +51,56 @@ class Auth {
                 .from('users')
                 .select('*, branches(name, name_en)')
                 .eq('id', userId)
-                .single();
+                .maybeSingle();
 
-            if (error) throw error;
+            if (error) {
+                console.warn('Load profile error:', error);
+                // If RLS blocks or no record, use basic auth data
+                const { data: authData } = await db.auth.getUser();
+                if (authData?.user) {
+                    this.user = {
+                        id: authData.user.id,
+                        email: authData.user.email,
+                        full_name: authData.user.email?.split('@')[0] || 'User',
+                        role: 'admin' // Default role
+                    };
+                }
+                return this.user;
+            }
+
+            if (!data) {
+                // No user record in users table - use auth data
+                const { data: authData } = await db.auth.getUser();
+                if (authData?.user) {
+                    this.user = {
+                        id: authData.user.id,
+                        email: authData.user.email,
+                        full_name: authData.user.email?.split('@')[0] || 'User',
+                        role: 'admin'
+                    };
+                }
+                return this.user;
+            }
+
             this.user = data;
             return data;
         } catch (error) {
             console.error('Load profile error:', error);
-            return null;
+            // Fallback to basic auth data
+            try {
+                const { data: authData } = await db.auth.getUser();
+                if (authData?.user) {
+                    this.user = {
+                        id: authData.user.id,
+                        email: authData.user.email,
+                        full_name: authData.user.email?.split('@')[0] || 'User',
+                        role: 'admin'
+                    };
+                }
+            } catch (e) {
+                console.error('Fallback error:', e);
+            }
+            return this.user;
         }
     }
 

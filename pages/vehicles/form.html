@@ -40,18 +40,12 @@
                             <!-- Customer Selection -->
                             <div class="form-group">
                                 <label class="form-label required">العميل</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-input" id="customerSearch"
-                                        placeholder="ابحث بالاسم أو رقم الهاتف..." autocomplete="off">
-                                    <input type="hidden" id="customer_id" name="customer_id" required>
-                                </div>
-                                <div id="customerResults" class="dropdown-menu"
-                                    style="position: relative; width: 100%;"></div>
-                                <div id="selectedCustomer" class="mt-2" style="display: none;">
-                                    <span class="badge badge-primary" id="customerBadge"></span>
-                                    <button type="button" class="btn btn-sm btn-ghost"
-                                        onclick="clearCustomer()">✕</button>
-                                </div>
+                                <select class="form-select" id="customer_id" name="customer_id" required>
+                                    <option value="">-- اختر العميل --</option>
+                                </select>
+                                <small class="text-muted" style="display: block; margin-top: 4px;">
+                                    لإضافة عميل جديد <a href="../customers/form.html">اضغط هنا</a>
+                                </small>
                             </div>
 
                             <div class="grid grid-cols-2 gap-6 mt-6">
@@ -163,6 +157,7 @@
     <script src="../../assets/js/auth/auth.js"></script>
     <script src="../../assets/js/utils/ui.js"></script>
     <script src="../../assets/js/utils/api.js"></script>
+    <script src="../../assets/js/components/sidebar.js"></script>
     <script src="../../assets/js/modules/vehicles.js"></script>
     <script src="../../assets/js/modules/customers.js"></script>
 
@@ -171,8 +166,12 @@
 
         async function init() {
             i18n.init();
-            const { session } = await auth.init();
+            const { session, user } = await auth.init();
             if (!session) { window.location.href = '../../index.html'; return; }
+            Sidebar.render(user);
+
+            // Load customers into dropdown
+            await loadCustomers();
 
             const params = new URLSearchParams(window.location.search);
             vehicleId = params.get('id');
@@ -182,7 +181,28 @@
                 document.getElementById('pageTitle').textContent = 'تعديل بيانات المركبة';
                 await loadVehicle();
             } else if (customerId) {
-                await loadCustomerForNew(customerId);
+                document.getElementById('customer_id').value = customerId;
+            }
+        }
+
+        async function loadCustomers() {
+            try {
+                const { data: customers } = await db
+                    .from('customers')
+                    .select('id, name, phone')
+                    .order('name', { ascending: true });
+
+                const select = document.getElementById('customer_id');
+                if (customers && customers.length > 0) {
+                    customers.forEach(c => {
+                        const option = document.createElement('option');
+                        option.value = c.id;
+                        option.textContent = `${c.name} - ${c.phone}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading customers:', error);
             }
         }
 
@@ -196,52 +216,10 @@
                 if (el && vehicle[key]) el.value = vehicle[key];
             });
 
-            if (vehicle.customers) {
-                selectCustomer(vehicle.customer_id, vehicle.customers.name);
+            // Set customer in dropdown
+            if (vehicle.customer_id) {
+                document.getElementById('customer_id').value = vehicle.customer_id;
             }
-        }
-
-        async function loadCustomerForNew(customerId) {
-            const { data } = await db.from('customers').select('id, name').eq('id', customerId).single();
-            if (data) selectCustomer(data.id, data.name);
-        }
-
-        // Customer search
-        let searchTimeout;
-        document.getElementById('customerSearch').addEventListener('input', async (e) => {
-            clearTimeout(searchTimeout);
-            const query = e.target.value;
-            if (query.length < 2) { document.getElementById('customerResults').innerHTML = ''; return; }
-
-            searchTimeout = setTimeout(async () => {
-                const customers = await Customers.search(query);
-                const resultsDiv = document.getElementById('customerResults');
-
-                if (customers.length === 0) {
-                    resultsDiv.innerHTML = '<div class="dropdown-item">لا توجد نتائج</div>';
-                } else {
-                    resultsDiv.innerHTML = customers.map(c => `
-                        <div class="dropdown-item" onclick="selectCustomer('${c.id}', '${c.name}')">
-                            <span>${c.name}</span>
-                            <span class="text-muted text-sm">${c.phone}</span>
-                        </div>
-                    `).join('');
-                }
-                resultsDiv.style.display = 'block';
-            }, 300);
-        });
-
-        function selectCustomer(id, name) {
-            document.getElementById('customer_id').value = id;
-            document.getElementById('customerSearch').value = '';
-            document.getElementById('customerResults').style.display = 'none';
-            document.getElementById('selectedCustomer').style.display = 'block';
-            document.getElementById('customerBadge').textContent = name;
-        }
-
-        function clearCustomer() {
-            document.getElementById('customer_id').value = '';
-            document.getElementById('selectedCustomer').style.display = 'none';
         }
 
         document.getElementById('vehicleForm').addEventListener('submit', async (e) => {
@@ -255,9 +233,14 @@
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData);
 
-            // Convert numbers
-            if (data.year) data.year = parseInt(data.year);
-            if (data.mileage) data.mileage = parseInt(data.mileage);
+            // Convert numbers - handle empty strings
+            data.year = data.year ? parseInt(data.year) : null;
+            data.mileage = data.mileage ? parseInt(data.mileage) : null;
+
+            // Remove empty string values
+            Object.keys(data).forEach(key => {
+                if (data[key] === '') data[key] = null;
+            });
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;

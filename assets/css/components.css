@@ -400,3 +400,101 @@
     font-weight: var(--font-weight-semibold);
     margin-bottom: var(--space-2);
 }
+
+/* Dropdown */
+.dropdown {
+    position: relative;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    inset-inline-end: 0;
+    min-width: 220px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    padding: var(--space-2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all var(--transition);
+    z-index: var(--z-dropdown);
+}
+
+.dropdown.open .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    border-radius: var(--radius-md);
+    transition: all var(--transition);
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+}
+
+.dropdown-item.danger {
+    color: var(--danger-500);
+}
+
+.dropdown-item.danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger-400);
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: var(--space-2) 0;
+}
+
+/* Input Group with Icon */
+.input-group {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.input-icon.start {
+    inset-inline-start: var(--space-4);
+}
+
+.input-icon.end {
+    inset-inline-end: var(--space-4);
+}
+
+.form-input.has-icon-start {
+    padding-inline-start: calc(var(--space-4) + 24px);
+}
+
+.form-input.has-icon-end {
+    padding-inline-end: calc(var(--space-4) + 24px);
+}
+
+/* Badge for gray variant */
+.badge-gray {
+    background: rgba(100, 116, 139, 0.2);
+    color: var(--text-secondary);
+}

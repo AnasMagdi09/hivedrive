@@ -72,39 +72,55 @@
 
                 <div class="header-right">
                     <!-- Search -->
-                    <div class="input-group" style="width: 280px;">
-                        <span class="input-icon start">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <circle cx="11" cy="11" r="8" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                            </svg>
-                        </span>
-                        <input type="search" class="form-input has-icon-start" placeholder="بحث..."
-                            style="height: 40px;">
+                    <div class="header-search">
+                        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                        <input type="search" class="form-input" placeholder="بحث سريع..." id="globalSearch">
                     </div>
 
-                    <!-- Language Toggle -->
-                    <button class="btn btn-icon btn-ghost" id="langToggle" data-tooltip="تغيير اللغة">
-                        <span id="langIcon">EN</span>
-                    </button>
+                    <div class="header-divider"></div>
 
-                    <!-- Notifications -->
-                    <button class="btn btn-icon btn-ghost" id="notificationsBtn" data-tooltip="الإشعارات">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                        </svg>
-                    </button>
+                    <!-- Action Buttons -->
+                    <div class="header-actions">
+                        <!-- Notifications -->
+                        <button class="header-btn" id="notificationsBtn" title="الإشعارات">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                            </svg>
+                            <span class="notification-badge"></span>
+                        </button>
+                    </div>
+
+                    <div class="header-divider"></div>
+
+                    <!-- Language Switcher -->
+                    <div class="lang-switcher">
+                        <button class="lang-btn" id="langAr" onclick="i18n.setLang('ar')">ع</button>
+                        <button class="lang-btn active" id="langEn" onclick="i18n.setLang('en')">EN</button>
+                    </div>
+
+                    <div class="header-divider"></div>
 
                     <!-- User Menu -->
                     <div class="dropdown" id="userMenuDropdown">
-                        <button class="btn btn-ghost" id="userMenuBtn">
-                            <div class="avatar sm" id="headerAvatar">م</div>
-                        </button>
+                        <div class="header-user" id="userMenuBtn">
+                            <div class="header-user-avatar" id="headerAvatar">م</div>
+                            <div class="header-user-info">
+                                <span class="header-user-name" id="headerUserName">المستخدم</span>
+                                <span class="header-user-role" id="headerUserRole">مدير</span>
+                            </div>
+                            <svg class="header-user-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                        </div>
                         <div class="dropdown-menu" id="userMenu">
-                            <a href="#" class="dropdown-item">
+                            <a href="pages/settings/index.html" class="dropdown-item">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -112,7 +128,7 @@
                                 </svg>
                                 <span data-i18n="profile">الملف الشخصي</span>
                             </a>
-                            <a href="#" class="dropdown-item">
+                            <a href="pages/settings/index.html" class="dropdown-item">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
                                     <circle cx="12" cy="12" r="3" />
@@ -426,13 +442,11 @@
             document.getElementById('header').classList.toggle('sidebar-collapsed');
         });
 
-        document.getElementById('langToggle').addEventListener('click', () => {
-            const newLang = i18n.toggleLanguage();
-            document.getElementById('langIcon').textContent = newLang === 'ar' ? 'EN' : 'ع';
-
-            // Update all i18n text
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                el.textContent = t(el.dataset.i18n);
+        // Language switcher
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
             });
         });
 

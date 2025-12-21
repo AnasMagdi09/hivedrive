@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveDrive - تفاصيل أمر الشغل</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <link rel="stylesheet" href="../../assets/css/rtl.css">
+    <style>
+        .wo-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--primary); }
+        .wo-number-box { background: var(--primary); color: white; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 1.25rem; font-weight: 700; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .info-box { background: var(--bg-secondary); padding: 1rem; border-radius: 8px; }
+        .info-box label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+        .info-box span { font-weight: 600; font-size: 1rem; }
+        .items-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .items-table th { background: var(--bg-dark); color: white; padding: 0.75rem; text-align: right; }
+        .items-table td { padding: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .items-table .number { text-align: center; width: 50px; }
+        .items-table .price { text-align: left; }
+        .totals-box { background: var(--bg-secondary); padding: 1rem; border-radius: 8px; max-width: 350px; margin-right: auto; }
+        .total-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); }
+        .total-row:last-child { border-bottom: none; }
+        .total-row.grand { font-size: 1.25rem; font-weight: 700; color: var(--primary); padding-top: 0.75rem; }
+        .action-buttons { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2rem; padding-top: 1.5rem; border-top: 2px dashed var(--border-color); }
+        .section-title { font-size: 1rem; font-weight: 700; margin: 1.5rem 0 1rem; padding: 0.5rem 1rem; background: var(--bg-secondary); border-right: 4px solid var(--primary); }
+        .status-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <header class="header" id="header">
+                <div class="header-left">
+                    <button class="btn btn-icon btn-ghost" id="mobileMenuBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" />
+                        </svg>
+                    </button>
+                    <a href="list.html" class="btn btn-ghost">← رجوع</a>
+                    <h1 class="page-title">تفاصيل أمر الشغل</h1>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-secondary" onclick="window.print()">🖨️ طباعة</button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="card">
+                    <div class="card-body" id="workOrderDetails">
+                        <div class="flex justify-center py-8"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/i18n/ar.js"></script>
+    <script src="../../assets/js/i18n/en.js"></script>
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script src="../../assets/js/config/supabase.js"></script>
+    <script src="../../assets/js/auth/auth.js"></script>
+    <script src="../../assets/js/utils/ui.js"></script>
+    <script src="../../assets/js/utils/api.js"></script>
+    <script src="../../assets/js/components/sidebar.js"></script>
+
+    <script>
+        let workOrder = null;
+        const params = new URLSearchParams(window.location.search);
+        const workOrderId = params.get('id');
+
+        async function init() {
+            i18n.init();
+            const { session, user } = await auth.init();
+            if (!session) { window.location.href = '../../index.html'; return; }
+            Sidebar.render(user);
+            if (!workOrderId) {
+                document.getElementById('workOrderDetails').innerHTML = '<p class="text-center text-danger">لم يتم تحديد أمر الشغل</p>';
+                return;
+            }
+            await loadWorkOrder();
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('ar-EG', { minimumFractionDigits: 2 }).format(amount || 0) + ' ج.م';
+        }
+
+        function formatDate(date) {
+            if (!date) return '-';
+            return new Date(date).toLocaleDateString('ar-EG');
+        }
+
+        function getStatusBadge(status) {
+            const map = {
+                pending: { class: 'badge-warning', text: 'في الانتظار' },
+                in_progress: { class: 'badge-primary', text: 'قيد التنفيذ' },
+                on_hold: { class: 'badge-danger', text: 'متوقف' },
+                completed: { class: 'badge-success', text: 'مكتمل' },
+                delivered: { class: 'badge-gray', text: 'تم التسليم' },
+                cancelled: { class: 'badge-danger', text: 'ملغي' }
+            };
+            const s = map[status] || { class: 'badge-gray', text: status };
+            return `<span class="badge ${s.class}">${s.text}</span>`;
+        }
+
+        async function loadWorkOrder() {
+            try {
+                const { data, error } = await db
+                    .from('work_orders')
+                    .select(`*, customers(id, name, phone, address), vehicles(id, plate_number, brand, model, year, color), work_order_items(*), quotations(quotation_number)`)
+                    .eq('id', workOrderId)
+                    .single();
+
+                if (error) throw error;
+                workOrder = data;
+                renderWorkOrder();
+            } catch (error) {
+                console.error('Load error:', error);
+                document.getElementById('workOrderDetails').innerHTML = '<p class="text-center text-danger">خطأ في تحميل أمر الشغل</p>';
+            }
+        }
+
+        function renderWorkOrder() {
+            const wo = workOrder;
+            const services = (wo.work_order_items || []).filter(i => i.item_type === 'service');
+            const parts = (wo.work_order_items || []).filter(i => i.item_type === 'part');
+            const servicesTotal = services.reduce((sum, s) => sum + (s.total || 0), 0);
+            const partsTotal = parts.reduce((sum, p) => sum + (p.total || 0), 0);
+
+            document.getElementById('workOrderDetails').innerHTML = `
+                <div class="wo-header">
+                    <div>
+                        <div class="wo-number-box">🔧 ${wo.order_number}</div>
+                        <p class="text-muted mt-2">تاريخ الإنشاء: ${formatDate(wo.created_at)}</p>
+                        ${wo.quotations ? `<p class="text-muted">من مقايسة: ${wo.quotations.quotation_number}</p>` : ''}
+                    </div>
+                    <div class="text-left">
+                        ${getStatusBadge(wo.status)}
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-box"><label>العميل</label><span>${wo.customers?.name || '-'}</span></div>
+                    <div class="info-box"><label>الهاتف</label><span>${wo.customers?.phone || '-'}</span></div>
+                    <div class="info-box"><label>العنوان</label><span>${wo.customers?.address || '-'}</span></div>
+                    <div class="info-box"><label>المركبة</label><span>${wo.vehicles?.brand || ''} ${wo.vehicles?.model || ''} ${wo.vehicles?.year || ''}</span></div>
+                    <div class="info-box"><label>رقم اللوحة</label><span>${wo.vehicles?.plate_number || '-'}</span></div>
+                    <div class="info-box"><label>اللون</label><span>${wo.vehicles?.color || '-'}</span></div>
+                </div>
+
+                ${services.length > 0 ? `
+                    <div class="section-title">الأعمال والخدمات</div>
+                    <table class="items-table">
+                        <thead><tr><th class="number">م</th><th>وصف العمل</th><th class="price">التكلفة</th></tr></thead>
+                        <tbody>
+                            ${services.map((s, i) => `<tr><td class="number">${i + 1}</td><td>${s.description || '-'}</td><td class="price">${formatCurrency(s.total)}</td></tr>`).join('')}
+                        </tbody>
+                    </table>
+                ` : ''}
+
+                ${parts.length > 0 ? `
+                    <div class="section-title">قطع الغيار</div>
+                    <table class="items-table">
+                        <thead><tr><th class="number">م</th><th>اسم القطعة</th><th>الكمية</th><th class="price">السعر</th><th class="price">الإجمالي</th></tr></thead>
+                        <tbody>
+                            ${parts.map((p, i) => `<tr><td class="number">${i + 1}</td><td>${p.description || '-'}</td><td>${p.quantity || 1}</td><td class="price">${formatCurrency(p.unit_price)}</td><td class="price">${formatCurrency(p.total)}</td></tr>`).join('')}
+                        </tbody>
+                    </table>
+                ` : ''}
+
+                <div class="totals-box">
+                    <div class="total-row"><span>إجمالي المصنعية</span><span>${formatCurrency(servicesTotal)}</span></div>
+                    <div class="total-row"><span>إجمالي قطع الغيار</span><span>${formatCurrency(partsTotal)}</span></div>
+                    <div class="total-row grand"><span>الإجمالي النهائي</span><span>${formatCurrency(wo.total)}</span></div>
+                </div>
+
+                ${wo.notes ? `<div class="section-title">ملاحظات</div><p style="white-space: pre-line; background: #fffbeb; padding: 1rem; border-radius: 8px;">${wo.notes}</p>` : ''}
+
+                <div class="action-buttons">
+                    <div class="section-title" style="margin: 0; flex: 100%;">تغيير حالة أمر الشغل</div>
+                    <div class="status-actions">
+                        ${wo.status === 'pending' ? `<button class="btn btn-primary" onclick="updateStatus('in_progress')">▶️ بدء العمل</button>` : ''}
+                        ${wo.status === 'in_progress' ? `
+                            <button class="btn btn-warning" onclick="updateStatus('on_hold')">⏸️ إيقاف مؤقت</button>
+                            <button class="btn btn-success" onclick="updateStatus('completed')">✅ إكمال العمل</button>
+                        ` : ''}
+                        ${wo.status === 'on_hold' ? `<button class="btn btn-primary" onclick="updateStatus('in_progress')">▶️ استئناف العمل</button>` : ''}
+                        ${wo.status === 'completed' ? `
+                            <button class="btn btn-success" onclick="updateStatus('delivered')">🚗 تسليم للعميل</button>
+                            <button class="btn btn-primary" onclick="createInvoice()">📄 إنشاء فاتورة</button>
+                        ` : ''}
+                        ${wo.status === 'delivered' ? `<p class="text-success">✅ تم تسليم المركبة للعميل</p>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function updateStatus(newStatus) {
+            const statusNames = { in_progress: 'قيد التنفيذ', on_hold: 'متوقف', completed: 'مكتمل', delivered: 'تم التسليم' };
+            if (!confirm(`هل تريد تغيير الحالة إلى "${statusNames[newStatus]}"؟`)) return;
+            
+            try {
+                await db.from('work_orders').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', workOrderId);
+                alert('تم تحديث الحالة بنجاح');
+                await loadWorkOrder();
+            } catch (error) {
+                alert('خطأ: ' + error.message);
+            }
+        }
+
+        async function createInvoice() {
+            if (!confirm('هل تريد إنشاء فاتورة لأمر الشغل هذا؟')) return;
+            try {
+                const user = auth.getUser();
+                const wo = workOrder;
+
+                const { data: invoice, error } = await db.from('invoices').insert({
+                    work_order_id: wo.id,
+                    customer_id: wo.customer_id,
+                    branch_id: wo.branch_id,
+                    status: 'issued',
+                    subtotal: wo.total,
+                    discount_amount: 0,
+                    tax_amount: 0,
+                    total: wo.total,
+                    paid_amount: 0,
+                    remaining_amount: wo.total,
+                    issued_by: user?.id,
+                    issued_at: new Date().toISOString()
+                }).select().single();
+
+                if (error) throw error;
+                alert('تم إنشاء الفاتورة بنجاح!\nرقم الفاتورة: ' + invoice.invoice_number);
+                window.location.href = '../invoices/view.html?id=' + invoice.id;
+            } catch (error) {
+                console.error(error);
+                alert('خطأ: ' + error.message);
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

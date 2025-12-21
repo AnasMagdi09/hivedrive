@@ -8,13 +8,39 @@ const Inventory = {
      */
     async loadParts(options = {}) {
         try {
-            const { data, count } = await API.list('parts', {
-                select: '*, suppliers(name), inventory!inner(quantity, reserved_quantity, branch_id)',
+            const user = auth.getUser();
+            const branchId = user?.branch_id;
+
+            // Get parts with optional inventory join
+            const { data: parts, count } = await API.list('parts', {
+                select: '*, suppliers(name)',
                 orderBy: 'name',
                 ascending: true,
                 ...options
             });
-            return { data, count };
+
+            // If we have parts, get their inventory for this branch
+            if (parts && parts.length > 0 && branchId) {
+                const partIds = parts.map(p => p.id);
+                const { data: inventoryData } = await db
+                    .from('inventory')
+                    .select('part_id, quantity, reserved_quantity')
+                    .eq('branch_id', branchId)
+                    .in('part_id', partIds);
+
+                // Map inventory to parts
+                const inventoryMap = {};
+                (inventoryData || []).forEach(inv => {
+                    inventoryMap[inv.part_id] = inv;
+                });
+
+                parts.forEach(part => {
+                    const inv = inventoryMap[part.id] || { quantity: 0, reserved_quantity: 0 };
+                    part.inventory = [inv];
+                });
+            }
+
+            return { data: parts, count };
         } catch (error) {
             console.error('Load parts error:', error);
             return { data: [], count: 0 };
@@ -40,19 +66,19 @@ const Inventory = {
     },
 
     /**
-     * Create part
+     * Create part with initial quantity
      */
-    async createPart(partData) {
+    async createPart(partData, initialQuantity = 0) {
         try {
             const result = await API.create('parts', partData);
 
-            // Create inventory record for current branch
+            // Create inventory record for current branch with initial quantity
             const user = auth.getUser();
             if (user?.branch_id) {
                 await db.from('inventory').insert({
                     branch_id: user.branch_id,
                     part_id: result.id,
-                    quantity: 0
+                    quantity: initialQuantity
                 });
             }
 
@@ -265,7 +291,12 @@ const Inventory = {
                 </table>
             </div>
         `;
-    }
+    },
+
+    // Aliases for form.html compatibility
+    create: function (data, initialQty = 0) { return this.createPart(data, initialQty); },
+    update: function (id, data) { return this.updatePart(id, data); },
+    getById: function (id) { return this.getPartById(id); }
 };
 
 window.Inventory = Inventory;

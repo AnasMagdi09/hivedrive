@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveDrive - الإعدادات</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <link rel="stylesheet" href="../../assets/css/rtl.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <header class="header" id="header">
+                <div class="header-left">
+                    <button class="btn btn-icon btn-ghost" id="mobileMenuBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <line x1="3" y1="18" x2="21" y2="18" />
+                        </svg>
+                    </button>
+                    <h1 class="page-title">الإعدادات</h1>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="grid grid-cols-2 gap-6">
+                    <!-- Company Settings -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">إعدادات الشركة</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="companyForm">
+                                <div class="form-group">
+                                    <label class="form-label">اسم الشركة</label>
+                                    <input type="text" class="form-input" id="company_name" value="HiveDrive">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">رقم الهاتف</label>
+                                    <input type="tel" class="form-input" id="company_phone">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">البريد الإلكتروني</label>
+                                    <input type="email" class="form-input" id="company_email">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">العنوان</label>
+                                    <textarea class="form-textarea" id="company_address" rows="2"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">حفظ الإعدادات</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- User Profile -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">الملف الشخصي</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="profileForm">
+                                <div class="form-group">
+                                    <label class="form-label">الاسم الكامل</label>
+                                    <input type="text" class="form-input" id="full_name">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">البريد الإلكتروني</label>
+                                    <input type="email" class="form-input" id="email" disabled>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">رقم الهاتف</label>
+                                    <input type="tel" class="form-input" id="phone">
+                                </div>
+                                <button type="submit" class="btn btn-primary">تحديث الملف الشخصي</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Settings -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">إعدادات الفواتير</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="invoiceForm">
+                                <div class="form-group">
+                                    <label class="form-label">نسبة الضريبة (%)</label>
+                                    <input type="number" class="form-input" id="tax_rate" value="14" min="0" max="100">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">العملة</label>
+                                    <select class="form-select" id="currency">
+                                        <option value="EGP">جنيه مصري (ج.م)</option>
+                                        <option value="SAR">ريال سعودي</option>
+                                        <option value="AED">درهم إماراتي</option>
+                                        <option value="USD">دولار أمريكي</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">بادئة رقم الفاتورة</label>
+                                    <input type="text" class="form-input" id="invoice_prefix" value="INV-">
+                                </div>
+                                <button type="submit" class="btn btn-primary">حفظ الإعدادات</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Notification Settings -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">إعدادات الإشعارات</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="notify_new_order" checked>
+                                    <span>إشعار عند أمر شغل جديد</span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="notify_order_complete" checked>
+                                    <span>إشعار عند اكتمال أمر الشغل</span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="notify_payment" checked>
+                                    <span>إشعار عند استلام دفعة</span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="notify_low_stock" checked>
+                                    <span>تنبيه انخفاض المخزون</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Danger Zone -->
+                    <div class="card col-span-2">
+                        <div class="card-header">
+                            <h3 class="card-title text-danger">منطقة الخطر</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="flex gap-4 items-center">
+                                <div>
+                                    <strong>تسجيل الخروج</strong>
+                                    <p class="text-muted text-sm">الخروج من الحساب الحالي</p>
+                                </div>
+                                <button class="btn btn-danger" onclick="logout()">تسجيل الخروج</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/i18n/ar.js"></script>
+    <script src="../../assets/js/i18n/en.js"></script>
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script src="../../assets/js/config/supabase.js"></script>
+    <script src="../../assets/js/auth/auth.js"></script>
+    <script src="../../assets/js/utils/ui.js"></script>
+    <script src="../../assets/js/utils/api.js"></script>
+    <script src="../../assets/js/components/sidebar.js"></script>
+
+    <script>
+        async function init() {
+            i18n.init();
+            const { session, user } = await auth.init();
+            if (!session) { window.location.href = '../../index.html'; return; }
+            Sidebar.render(user);
+
+            // Load user profile
+            if (user) {
+                document.getElementById('full_name').value = user.full_name || '';
+                document.getElementById('email').value = user.email || '';
+                document.getElementById('phone').value = user.phone || '';
+            }
+        }
+
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = auth.getUser();
+            if (!user) return;
+
+            const { error } = await db.from('users').update({
+                full_name: document.getElementById('full_name').value,
+                phone: document.getElementById('phone').value
+            }).eq('id', user.id);
+
+            if (error) {
+                UI.toast('حدث خطأ', 'error');
+            } else {
+                UI.toast('تم تحديث الملف الشخصي', 'success');
+            }
+        });
+
+        document.getElementById('companyForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            UI.toast('تم حفظ الإعدادات', 'success');
+        });
+
+        document.getElementById('invoiceForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            UI.toast('تم حفظ الإعدادات', 'success');
+        });
+
+        async function logout() {
+            await auth.logout();
+            window.location.href = '../../index.html';
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

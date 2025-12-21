@@ -112,11 +112,12 @@ const Finance = {
      */
     async getTreasuryBalance(branchId) {
         try {
+            if (!branchId) return 0;
             const { data } = await db
                 .from('treasury')
                 .select('*')
                 .eq('branch_id', branchId)
-                .single();
+                .maybeSingle();
             return data?.current_balance || 0;
         } catch (error) {
             console.error('Get treasury error:', error);
@@ -137,7 +138,7 @@ const Finance = {
                 .from('treasury')
                 .select('*')
                 .eq('branch_id', branchId)
-                .single();
+                .maybeSingle();
 
             if (!treasury) {
                 const { data: newTreasury } = await db

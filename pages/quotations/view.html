@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveDrive - تفاصيل المقايسة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <link rel="stylesheet" href="../../assets/css/rtl.css">
+    <style>
+        .quote-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--primary);
+        }
+        .quote-number-box {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .info-box {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        .info-box label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+        .info-box span {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .items-table th {
+            background: var(--bg-dark);
+            color: white;
+            padding: 0.75rem;
+            text-align: right;
+        }
+        .items-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .items-table .number { text-align: center; width: 50px; }
+        .items-table .price { text-align: left; }
+        .totals-box {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 8px;
+            max-width: 350px;
+            margin-right: auto;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .total-row:last-child { border-bottom: none; }
+        .total-row.grand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+            padding-top: 0.75rem;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px dashed var(--border-color);
+        }
+        .btn-convert {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        .btn-invoice {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 1.5rem 0 1rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border-right: 4px solid var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <header class="header" id="header">
+                <div class="header-left">
+                    <button class="btn btn-icon btn-ghost" id="mobileMenuBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <line x1="3" y1="18" x2="21" y2="18" />
+                        </svg>
+                    </button>
+                    <a href="list.html" class="btn btn-ghost">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                        رجوع
+                    </a>
+                    <h1 class="page-title">تفاصيل المقايسة</h1>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-secondary" onclick="printQuotation()">🖨️ طباعة</button>
+                    <a href="form.html" id="editBtn" class="btn btn-primary" style="display:none;">✏️ تعديل</a>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="card">
+                    <div class="card-body" id="quotationDetails">
+                        <div class="flex justify-center py-8">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/i18n/ar.js"></script>
+    <script src="../../assets/js/i18n/en.js"></script>
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script src="../../assets/js/config/supabase.js"></script>
+    <script src="../../assets/js/auth/auth.js"></script>
+    <script src="../../assets/js/utils/ui.js"></script>
+    <script src="../../assets/js/utils/api.js"></script>
+    <script src="../../assets/js/components/sidebar.js"></script>
+
+    <script>
+        let quotation = null;
+        const params = new URLSearchParams(window.location.search);
+        const quotationId = params.get('id');
+
+        async function init() {
+            i18n.init();
+            const { session, user } = await auth.init();
+            if (!session) { window.location.href = '../../index.html'; return; }
+            Sidebar.render(user);
+            
+            if (!quotationId) {
+                document.getElementById('quotationDetails').innerHTML = '<p class="text-center text-danger">لم يتم تحديد المقايسة</p>';
+                return;
+            }
+            await loadQuotation();
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('ar-EG', { minimumFractionDigits: 2 }).format(amount || 0) + ' ج.م';
+        }
+
+        function formatDate(date) {
+            if (!date) return '-';
+            return new Date(date).toLocaleDateString('ar-EG');
+        }
+
+        function getStatusBadge(status) {
+            const map = {
+                draft: { class: 'badge-gray', text: 'مسودة' },
+                pending: { class: 'badge-warning', text: 'في الانتظار' },
+                approved: { class: 'badge-success', text: 'موافق عليها' },
+                rejected: { class: 'badge-danger', text: 'مرفوضة' },
+                converted: { class: 'badge-primary', text: 'تم التحويل' }
+            };
+            const s = map[status] || { class: 'badge-gray', text: status };
+            return `<span class="badge ${s.class}">${s.text}</span>`;
+        }
+
+        async function loadQuotation() {
+            try {
+                const { data, error } = await db
+                    .from('quotations')
+                    .select(`*, customers(id, name, phone, address), vehicles(id, plate_number, brand, model, year, color, chassis_number), quotation_items(*)`)
+                    .eq('id', quotationId)
+                    .single();
+
+                if (error) throw error;
+                quotation = data;
+                renderQuotation();
+            } catch (error) {
+                console.error('Load error:', error);
+                document.getElementById('quotationDetails').innerHTML = '<p class="text-center text-danger">خطأ في تحميل المقايسة</p>';
+            }
+        }
+
+        function renderQuotation() {
+            const q = quotation;
+            const services = (q.quotation_items || []).filter(i => i.item_type === 'service');
+            const parts = (q.quotation_items || []).filter(i => i.item_type === 'part');
+            const servicesTotal = services.reduce((sum, s) => sum + (s.total || 0), 0);
+            const partsTotal = parts.reduce((sum, p) => sum + (p.total || 0), 0);
+
+            // Show edit button if draft or pending
+            if (q.status === 'draft' || q.status === 'pending') {
+                const editBtn = document.getElementById('editBtn');
+                editBtn.href = `form.html?id=${q.id}`;
+                editBtn.style.display = 'inline-flex';
+            }
+
+            document.getElementById('quotationDetails').innerHTML = `
+                <div class="quote-detail-header">
+                    <div>
+                        <div class="quote-number-box">${q.quotation_number}</div>
+                        <p class="text-muted mt-2">تاريخ الإنشاء: ${formatDate(q.created_at)}</p>
+                    </div>
+                    <div class="text-left">
+                        ${getStatusBadge(q.status)}
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-box">
+                        <label>العميل</label>
+                        <span>${q.customers?.name || '-'}</span>
+                    </div>
+                    <div class="info-box">
+                        <label>الهاتف</label>
+                        <span>${q.customers?.phone || '-'}</span>
+                    </div>
+                    <div class="info-box">
+                        <label>العنوان</label>
+                        <span>${q.customers?.address || '-'}</span>
+                    </div>
+                    <div class="info-box">
+                        <label>المركبة</label>
+                        <span>${q.vehicles?.brand || ''} ${q.vehicles?.model || ''} ${q.vehicles?.year || ''}</span>
+                    </div>
+                    <div class="info-box">
+                        <label>رقم اللوحة</label>
+                        <span>${q.vehicles?.plate_number || '-'}</span>
+                    </div>
+                    <div class="info-box">
+                        <label>اللون</label>
+                        <span>${q.vehicles?.color || '-'}</span>
+                    </div>
+                </div>
+
+                ${services.length > 0 ? `
+                    <div class="section-title">الأعمال والخدمات</div>
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th class="number">م</th>
+                                <th>وصف العمل</th>
+                                <th class="price">التكلفة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${services.map((s, i) => `
+                                <tr>
+                                    <td class="number">${i + 1}</td>
+                                    <td>${s.description || '-'}</td>
+                                    <td class="price">${formatCurrency(s.total)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                ` : ''}
+
+                ${parts.length > 0 ? `
+                    <div class="section-title">قطع الغيار</div>
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th class="number">م</th>
+                                <th>اسم القطعة</th>
+                                <th>الكمية</th>
+                                <th class="price">السعر</th>
+                                <th class="price">الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${parts.map((p, i) => `
+                                <tr>
+                                    <td class="number">${i + 1}</td>
+                                    <td>${p.description || '-'}</td>
+                                    <td>${p.quantity || 1}</td>
+                                    <td class="price">${formatCurrency(p.unit_price)}</td>
+                                    <td class="price">${formatCurrency(p.total)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                ` : ''}
+
+                <div class="totals-box">
+                    <div class="total-row">
+                        <span>إجمالي المصنعية</span>
+                        <span>${formatCurrency(servicesTotal)}</span>
+                    </div>
+                    <div class="total-row">
+                        <span>إجمالي قطع الغيار</span>
+                        <span>${formatCurrency(partsTotal)}</span>
+                    </div>
+                    <div class="total-row grand">
+                        <span>الإجمالي النهائي</span>
+                        <span>${formatCurrency(q.total)}</span>
+                    </div>
+                </div>
+
+                ${q.notes ? `
+                    <div class="section-title">ملاحظات</div>
+                    <p style="white-space: pre-line; background: #fffbeb; padding: 1rem; border-radius: 8px;">${q.notes}</p>
+                ` : ''}
+
+                <div class="action-buttons">
+                    ${q.status !== 'converted' ? `
+                        ${q.status === 'draft' || q.status === 'pending' ? `
+                            <button class="btn btn-success" onclick="approveQuotation()">✅ الموافقة على المقايسة</button>
+                        ` : ''}
+                        ${q.status === 'approved' ? `
+                            <button class="btn btn-convert" onclick="convertToWorkOrder()">🔧 تحويل لأمر شغل</button>
+                            <button class="btn btn-invoice" onclick="completeAsQuotationOnly()">✅ تمت كمقايسة فقط</button>
+                        ` : ''}
+                    ` : `
+                        <p class="text-success">✅ تم تحويل هذه المقايسة</p>
+                    `}
+                </div>
+            `;
+        }
+
+        async function approveQuotation() {
+            if (!confirm('هل تريد الموافقة على هذه المقايسة؟')) return;
+            try {
+                const user = auth.getUser();
+                await db.from('quotations').update({
+                    status: 'approved',
+                    approved_by: user?.id,
+                    approved_at: new Date().toISOString()
+                }).eq('id', quotationId);
+                
+                alert('تمت الموافقة على المقايسة بنجاح');
+                await loadQuotation();
+            } catch (error) {
+                alert('خطأ: ' + error.message);
+            }
+        }
+
+        async function convertToWorkOrder() {
+            if (!confirm('هل تريد تحويل المقايسة لأمر شغل؟')) return;
+            try {
+                const user = auth.getUser();
+                const q = quotation;
+
+                // Create work order
+                const { data: wo, error } = await db.from('work_orders').insert({
+                    quotation_id: q.id,
+                    customer_id: q.customer_id,
+                    vehicle_id: q.vehicle_id,
+                    branch_id: q.branch_id,
+                    status: 'pending',
+                    subtotal: q.subtotal,
+                    discount_percent: 0,
+                    discount_amount: 0,
+                    tax_percent: 0,
+                    tax_amount: 0,
+                    total: q.total,
+                    created_by: user?.id
+                }).select().single();
+
+                if (error) throw error;
+
+                // Copy items
+                const items = (q.quotation_items || []).map(item => ({
+                    work_order_id: wo.id,
+                    item_type: item.item_type,
+                    part_id: item.part_id,
+                    description: item.description,
+                    quantity: item.quantity,
+                    unit_price: item.unit_price,
+                    total: item.total,
+                    sort_order: item.sort_order
+                }));
+
+                if (items.length > 0) {
+                    await db.from('work_order_items').insert(items);
+                }
+
+                // Update quotation status
+                await db.from('quotations').update({ status: 'converted' }).eq('id', q.id);
+
+                alert('تم تحويل المقايسة لأمر شغل بنجاح!\nرقم أمر الشغل: ' + wo.order_number);
+                window.location.href = '../workorders/view.html?id=' + wo.id;
+            } catch (error) {
+                console.error(error);
+                alert('خطأ: ' + error.message);
+            }
+        }
+
+        async function completeAsQuotationOnly() {
+            if (!confirm('هل تريد إنهاء المقايسة كفحص فقط بدون أمر شغل؟')) return;
+            try {
+                // Update quotation status to converted (completed)
+                await db.from('quotations').update({ status: 'converted' }).eq('id', quotation.id);
+
+                alert('تم إنهاء المقايسة بنجاح');
+                await loadQuotation();
+            } catch (error) {
+                console.error(error);
+                alert('خطأ: ' + error.message);
+            }
+        }
+
+        function printQuotation() {
+            window.open('print.html?id=' + quotationId, '_blank');
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

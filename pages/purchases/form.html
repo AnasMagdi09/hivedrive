@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveDrive - أمر شراء جديد</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <link rel="stylesheet" href="../../assets/css/rtl.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <header class="header" id="header">
+                <div class="header-left">
+                    <a href="list.html" class="btn btn-icon btn-ghost">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="19" y1="12" x2="5" y2="12" />
+                            <polyline points="12 19 5 12 12 5" />
+                        </svg>
+                    </a>
+                    <h1 class="page-title" id="pageTitle">أمر شراء جديد</h1>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="card" style="max-width: 900px;">
+                    <div class="card-body">
+                        <form id="purchaseForm">
+                            <!-- Supplier Selection -->
+                            <div class="form-group">
+                                <label class="form-label required">المورد</label>
+                                <select class="form-select" id="supplier_id" name="supplier_id" required>
+                                    <option value="">-- اختر المورد --</option>
+                                </select>
+                                <small class="text-muted" style="display: block; margin-top: 4px;">
+                                    لإضافة مورد جديد <a href="../suppliers/form.html">اضغط هنا</a>
+                                </small>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-6 mt-4">
+                                <div class="form-group">
+                                    <label class="form-label">تاريخ التسليم المتوقع</label>
+                                    <input type="date" class="form-input" id="expected_date" name="expected_date">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">ملاحظات</label>
+                                    <textarea class="form-textarea" id="notes" name="notes" rows="2"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Items -->
+                            <div class="card mt-6">
+                                <div class="card-header flex justify-between items-center">
+                                    <h4>الأصناف</h4>
+                                    <button type="button" class="btn btn-sm btn-secondary" onclick="addItem()">+ إضافة
+                                        صنف</button>
+                                </div>
+                                <div class="card-body" id="itemsContainer">
+                                    <div class="text-muted text-center py-4">أضف أصناف لأمر الشراء</div>
+                                </div>
+                                <div class="card-footer flex justify-between">
+                                    <span class="font-semibold">الإجمالي:</span>
+                                    <span class="font-semibold text-lg" id="totalAmount">0.00 ج.م</span>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-4 justify-end mt-6">
+                                <a href="list.html" class="btn btn-secondary">إلغاء</a>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">حفظ أمر الشراء</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/i18n/ar.js"></script>
+    <script src="../../assets/js/i18n/en.js"></script>
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script src="../../assets/js/config/supabase.js"></script>
+    <script src="../../assets/js/auth/auth.js"></script>
+    <script src="../../assets/js/utils/ui.js"></script>
+    <script src="../../assets/js/utils/api.js"></script>
+    <script src="../../assets/js/components/sidebar.js"></script>
+    <script src="../../assets/js/modules/purchases.js"></script>
+    <script src="../../assets/js/modules/suppliers.js"></script>
+
+    <script>
+        let items = [];
+        let allParts = [];
+
+        async function init() {
+            i18n.init();
+            const { session, user } = await auth.init();
+            if (!session) { window.location.href = '../../index.html'; return; }
+            Sidebar.render(user);
+
+            // Load suppliers and parts
+            await loadSuppliers();
+            await loadParts();
+        }
+
+        async function loadSuppliers() {
+            try {
+                const { data: suppliers } = await db
+                    .from('suppliers')
+                    .select('id, name, phone')
+                    .order('name', { ascending: true });
+
+                const select = document.getElementById('supplier_id');
+                if (suppliers && suppliers.length > 0) {
+                    suppliers.forEach(s => {
+                        const option = document.createElement('option');
+                        option.value = s.id;
+                        option.textContent = `${s.name} - ${s.phone || ''}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading suppliers:', error);
+            }
+        }
+
+        async function loadParts() {
+            try {
+                const { data: parts } = await db
+                    .from('parts')
+                    .select('id, name, sku, cost_price')
+                    .order('name', { ascending: true });
+
+                allParts = parts || [];
+            } catch (error) {
+                console.error('Error loading parts:', error);
+            }
+        }
+
+        function getPartsOptions(selectedId = '') {
+            return `<option value="">-- اختر الصنف --</option>` +
+                allParts.map(p => `
+                    <option value="${p.id}" data-price="${p.cost_price}" ${p.id === selectedId ? 'selected' : ''}>
+                        ${p.name} (${p.sku})
+                    </option>
+                `).join('');
+        }
+
+        function addItem() {
+            const container = document.getElementById('itemsContainer');
+            items.push({ part_id: '', quantity: 1, unit_price: 0, name: '' });
+
+            renderItems();
+        }
+
+        function renderItems() {
+            const container = document.getElementById('itemsContainer');
+            if (items.length === 0) {
+                container.innerHTML = '<div class="text-muted text-center py-4">أضف أصناف لأمر الشراء</div>';
+                return;
+            }
+
+            container.innerHTML = items.map((item, i) => `
+                <div class="flex gap-4 items-end mb-4">
+                    <div class="form-group" style="flex: 2;">
+                        <label class="form-label">الصنف</label>
+                        <select class="form-select" onchange="updateItemPart(${i}, this)">
+                            ${getPartsOptions(item.part_id)}
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">الكمية</label>
+                        <input type="number" class="form-input" min="1" value="${item.quantity}" 
+                            onchange="updateItem(${i}, 'quantity', this.value)">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">سعر الوحدة</label>
+                        <input type="number" class="form-input" step="0.01" min="0" value="${item.unit_price}" 
+                            onchange="updateItem(${i}, 'unit_price', this.value)">
+                    </div>
+                    <button type="button" class="btn btn-icon btn-ghost btn-sm" onclick="removeItem(${i})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function updateItemPart(index, select) {
+            const partId = select.value;
+            const selectedOption = select.options[select.selectedIndex];
+            const price = parseFloat(selectedOption.dataset.price) || 0;
+            const name = selectedOption.textContent.trim();
+
+            items[index].part_id = partId;
+            items[index].unit_price = price;
+            items[index].name = name;
+
+            renderItems();
+            calculateTotal();
+        }
+
+        function updateItem(index, field, value) {
+            items[index][field] = field === 'name' ? value : parseFloat(value) || 0;
+            calculateTotal();
+        }
+
+        function removeItem(index) {
+            items.splice(index, 1);
+            renderItems();
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            const total = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+            document.getElementById('totalAmount').textContent = UI.formatCurrency(total);
+        }
+
+        document.getElementById('purchaseForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!document.getElementById('supplier_id').value) {
+                UI.toast('يرجى اختيار المورد', 'error');
+                return;
+            }
+
+            if (items.length === 0 || !items[0].part_id) {
+                UI.toast('يرجى إضافة أصناف', 'error');
+                return;
+            }
+
+            const total = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+
+            const formData = new FormData(e.target);
+            const data = {
+                ...Object.fromEntries(formData),
+                total
+            };
+
+            // Remove empty values to avoid SQL errors
+            Object.keys(data).forEach(key => {
+                if (data[key] === '') data[key] = null;
+            });
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="spinner sm"></div>';
+
+            const result = await Purchases.create(data, items);
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'حفظ أمر الشراء';
+
+            if (result) window.location.href = 'list.html';
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

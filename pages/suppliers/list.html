@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HiveDrive - العملاء</title>
+    <title>HiveDrive - الموردين</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -18,9 +18,7 @@
 
 <body>
     <div class="app-container">
-        <!-- Sidebar will be loaded dynamically -->
         <aside class="sidebar" id="sidebar"></aside>
-
         <main class="main-content">
             <header class="header" id="header">
                 <div class="header-left">
@@ -32,7 +30,7 @@
                             <line x1="3" y1="18" x2="21" y2="18" />
                         </svg>
                     </button>
-                    <h1 class="page-title" data-i18n="customers">العملاء</h1>
+                    <h1 class="page-title">الموردين</h1>
                 </div>
                 <div class="header-right">
                     <a href="form.html" class="btn btn-primary">
@@ -41,13 +39,12 @@
                             <line x1="12" y1="5" x2="12" y2="19" />
                             <line x1="5" y1="12" x2="19" y2="12" />
                         </svg>
-                        <span data-i18n="add">إضافة عميل</span>
+                        <span>إضافة مورد</span>
                     </a>
                 </div>
             </header>
 
             <div class="page-content">
-                <!-- Filters -->
                 <div class="card mb-6">
                     <div class="card-body">
                         <div class="flex gap-4 flex-wrap">
@@ -60,20 +57,14 @@
                                     </svg>
                                 </span>
                                 <input type="search" class="form-input has-icon-start" id="searchInput"
-                                    placeholder="بحث بالاسم أو رقم الهاتف...">
+                                    placeholder="بحث بالاسم أو الهاتف...">
                             </div>
-                            <select class="form-select" id="typeFilter" style="width: 180px;">
-                                <option value="">كل الأنواع</option>
-                                <option value="individual">أفراد</option>
-                                <option value="company">شركات</option>
-                            </select>
                         </div>
                     </div>
                 </div>
 
-                <!-- Customers List -->
                 <div class="card">
-                    <div class="card-body" id="customersContainer">
+                    <div class="card-body" id="suppliersContainer">
                         <div class="flex justify-center">
                             <div class="spinner"></div>
                         </div>
@@ -92,52 +83,32 @@
     <script src="../../assets/js/utils/ui.js"></script>
     <script src="../../assets/js/utils/api.js"></script>
     <script src="../../assets/js/components/sidebar.js"></script>
-    <script src="../../assets/js/modules/customers.js"></script>
+    <script src="../../assets/js/modules/suppliers.js"></script>
 
     <script>
-        let currentPage = 1;
-        const pageSize = 20;
-
         async function init() {
             i18n.init();
             const { session, user } = await auth.init();
-            if (!session) {
-                window.location.href = '../../index.html';
-                return;
-            }
+            if (!session) { window.location.href = '../../index.html'; return; }
             Sidebar.render(user);
-            await loadCustomers();
+            await loadSuppliers();
         }
 
-        async function loadCustomers() {
+        async function loadSuppliers() {
             const search = document.getElementById('searchInput').value;
-            const type = document.getElementById('typeFilter').value;
 
-            const options = {
-                limit: pageSize,
-                offset: (currentPage - 1) * pageSize
-            };
+            const options = { limit: 30 };
+            if (search) { options.search = search; options.searchFields = ['name', 'phone']; }
 
-            if (type) options.filters = { customer_type: type };
-            if (search) {
-                options.search = search;
-                options.searchFields = ['name', 'phone'];
-            }
-
-            const { data } = await Customers.loadList(options);
-            Customers.renderTable(data, document.getElementById('customersContainer'));
+            const { data } = await Suppliers.loadList(options);
+            Suppliers.renderTable(data, document.getElementById('suppliersContainer'));
         }
 
-        // Event listeners
-        document.getElementById('searchInput').addEventListener('input', debounce(loadCustomers, 300));
-        document.getElementById('typeFilter').addEventListener('change', loadCustomers);
+        document.getElementById('searchInput').addEventListener('input', debounce(loadSuppliers, 300));
 
         function debounce(func, wait) {
             let timeout;
-            return function (...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(this, args), wait);
-            };
+            return function (...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); };
         }
 
         init();
