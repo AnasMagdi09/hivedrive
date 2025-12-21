@@ -284,7 +284,7 @@
                     alert('تم تحديث الموظف بنجاح');
                 } else {
                     // Create new user via Supabase Auth
-                    const { data: authData, error: authError } = await supabase.auth.signUp({
+                    const { data: authData, error: authError } = await db.auth.signUp({
                         email,
                         password,
                         options: {
