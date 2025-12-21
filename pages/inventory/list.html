@@ -14,6 +14,19 @@
     <link rel="stylesheet" href="../../assets/css/main.css">
     <link rel="stylesheet" href="../../assets/css/components.css">
     <link rel="stylesheet" href="../../assets/css/rtl.css">
+    <style>
+        .stock-alert { background: #fef2f2; border: 1px solid #fecaca; border-right: 4px solid #ef4444; border-radius: 8px; padding: 1rem 1.5rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 1rem; }
+        .stock-alert.warning { background: #fffbeb; border-color: #fcd34d; border-right-color: #f59e0b; }
+        .stock-alert .alert-icon { font-size: 1.5rem; }
+        .stock-alert .alert-content { flex: 1; }
+        .stock-alert .alert-title { font-weight: 600; color: #991b1b; }
+        .stock-alert.warning .alert-title { color: #92400e; }
+        .stock-alert .alert-items { font-size: 0.875rem; color: #666; margin-top: 0.25rem; }
+        .stock-badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+        .stock-badge.critical { background: #fef2f2; color: #dc2626; }
+        .stock-badge.low { background: #fffbeb; color: #d97706; }
+        .stock-badge.ok { background: #f0fdf4; color: #16a34a; }
+    </style>
 </head>
 
 <body>
@@ -45,6 +58,9 @@
             </header>
 
             <div class="page-content">
+                <!-- Low Stock Alerts -->
+                <div id="stockAlerts" class="mb-4"></div>
+
                 <!-- Stats -->
                 <div class="grid grid-cols-4 mb-6">
                     <div class="stat-card">
@@ -139,7 +155,73 @@
             const { session, user } = await auth.init();
             if (!session) { window.location.href = '../../index.html'; return; }
             Sidebar.render(user);
+            await loadStockAlerts();
+            await loadStats();
             await loadParts();
+        }
+
+        async function loadStockAlerts() {
+            try {
+                const { data } = await db.from('inventory').select('quantity, parts(name, sku, min_quantity)');
+                
+                const critical = (data || []).filter(i => i.quantity === 0);
+                const low = (data || []).filter(i => i.quantity > 0 && i.quantity <= (i.parts?.min_quantity || 5));
+                
+                const container = document.getElementById('stockAlerts');
+                let html = '';
+                
+                if (critical.length > 0) {
+                    html += `
+                        <div class="stock-alert">
+                            <span class="alert-icon">🚨</span>
+                            <div class="alert-content">
+                                <div class="alert-title">${critical.length} قطع نفذت من المخزون!</div>
+                                <div class="alert-items">${critical.slice(0, 3).map(i => i.parts?.name).join('، ')}${critical.length > 3 ? ` و ${critical.length - 3} أخرى` : ''}</div>
+                            </div>
+                            <a href="?filter=out" class="btn btn-sm btn-danger">عرض الكل</a>
+                        </div>
+                    `;
+                }
+                
+                if (low.length > 0) {
+                    html += `
+                        <div class="stock-alert warning">
+                            <span class="alert-icon">⚠️</span>
+                            <div class="alert-content">
+                                <div class="alert-title">${low.length} قطع وصلت للحد الأدنى</div>
+                                <div class="alert-items">${low.slice(0, 3).map(i => `${i.parts?.name} (${i.quantity})`).join('، ')}${low.length > 3 ? ` و ${low.length - 3} أخرى` : ''}</div>
+                            </div>
+                            <a href="?filter=low" class="btn btn-sm btn-warning">عرض الكل</a>
+                        </div>
+                    `;
+                }
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Stock alerts error:', error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const { count: total } = await db.from('parts').select('*', { count: 'exact', head: true });
+                document.getElementById('statTotal').textContent = total || 0;
+
+                const { data: inventory } = await db.from('inventory').select('quantity, parts(min_quantity)');
+                
+                let inStock = 0, lowStock = 0, outStock = 0;
+                (inventory || []).forEach(i => {
+                    if (i.quantity === 0) outStock++;
+                    else if (i.quantity <= (i.parts?.min_quantity || 5)) lowStock++;
+                    else inStock++;
+                });
+
+                document.getElementById('statInStock').textContent = inStock;
+                document.getElementById('statLowStock').textContent = lowStock;
+                document.getElementById('statOutStock').textContent = outStock;
+            } catch (error) {
+                console.error('Stats error:', error);
+            }
         }
 
         async function loadParts() {
