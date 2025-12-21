@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveDrive - تفاصيل السيارة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <link rel="stylesheet" href="../../assets/css/rtl.css">
+    <style>
+        .vehicle-card { background: var(--bg-card); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; border: 1px solid var(--border-color); }
+        .vehicle-header { display: flex; gap: 2rem; align-items: center; margin-bottom: 2rem; }
+        .vehicle-icon { width: 100px; height: 100px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+        .vehicle-title h2 { font-size: 1.5rem; color: var(--text-primary); margin-bottom: 0.5rem; }
+        .vehicle-title .plate { font-size: 1.25rem; color: var(--accent); font-weight: 600; background: var(--accent-light); padding: 0.25rem 1rem; border-radius: 8px; display: inline-block; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+        .info-item { }
+        .info-item .label { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+        .info-item .value { font-size: 1rem; color: var(--text-primary); font-weight: 500; }
+        .action-buttons { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="btn btn-icon btn-ghost" onclick="history.back()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <h1 class="page-title">تفاصيل السيارة</h1>
+                </div>
+                <div class="header-right">
+                    <a href="form.html?id=" id="editBtn" class="btn btn-secondary">✏️ تعديل</a>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="vehicle-card">
+                    <div class="vehicle-header">
+                        <div class="vehicle-icon">🚗</div>
+                        <div class="vehicle-title">
+                            <h2 id="vehicleName">جاري التحميل...</h2>
+                            <div class="plate" id="vehiclePlate">---</div>
+                        </div>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="label">👤 المالك</div>
+                            <div class="value" id="ownerName">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">📞 هاتف المالك</div>
+                            <div class="value" id="ownerPhone">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">🏭 الماركة</div>
+                            <div class="value" id="brand">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">📋 الموديل</div>
+                            <div class="value" id="model">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">📅 سنة الصنع</div>
+                            <div class="value" id="year">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">🎨 اللون</div>
+                            <div class="value" id="color">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">🔢 رقم الشاسيه</div>
+                            <div class="value" id="chassis">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">⚙️ نوع المحرك</div>
+                            <div class="value" id="engine">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">📏 عداد الكيلومترات</div>
+                            <div class="value" id="mileage">-</div>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <a href="history.html?id=" id="historyBtn" class="btn btn-primary">📜 سجل الصيانة</a>
+                        <a href="../quotations/form.html?vehicle_id=" id="newQuotationBtn" class="btn btn-secondary">📝 مقايسة جديدة</a>
+                        <a href="../customers/view.html?id=" id="customerBtn" class="btn btn-ghost">👤 عرض العميل</a>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="card" id="notesCard" style="display: none;">
+                    <div class="card-header">
+                        <h3>📝 ملاحظات</h3>
+                    </div>
+                    <div class="card-body">
+                        <p id="notes"></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/i18n/ar.js"></script>
+    <script src="../../assets/js/i18n/en.js"></script>
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script src="../../assets/js/config/supabase.js"></script>
+    <script src="../../assets/js/auth/auth.js"></script>
+    <script src="../../assets/js/utils/ui.js"></script>
+    <script src="../../assets/js/components/sidebar.js"></script>
+
+    <script>
+        let vehicleId = null;
+
+        async function init() {
+            i18n.init();
+            const { session, user } = await auth.init();
+            if (!session) { window.location.href = '../../index.html'; return; }
+            Sidebar.render(user);
+
+            vehicleId = new URLSearchParams(window.location.search).get('id');
+            if (!vehicleId) {
+                alert('لم يتم تحديد السيارة');
+                history.back();
+                return;
+            }
+
+            // Update links
+            document.getElementById('editBtn').href = `form.html?id=${vehicleId}`;
+            document.getElementById('historyBtn').href = `history.html?id=${vehicleId}`;
+            document.getElementById('newQuotationBtn').href = `../quotations/form.html?vehicle_id=${vehicleId}`;
+
+            await loadVehicle();
+        }
+
+        async function loadVehicle() {
+            try {
+                const { data, error } = await db.from('vehicles')
+                    .select('*, customers(id, name, phone)')
+                    .eq('id', vehicleId)
+                    .single();
+
+                if (error) throw error;
+
+                document.getElementById('vehicleName').textContent = `${data.brand} ${data.model || ''}`;
+                document.getElementById('vehiclePlate').textContent = data.plate_number;
+                document.getElementById('ownerName').textContent = data.customers?.name || '-';
+                document.getElementById('ownerPhone').textContent = data.customers?.phone || '-';
+                document.getElementById('brand').textContent = data.brand || '-';
+                document.getElementById('model').textContent = data.model || '-';
+                document.getElementById('year').textContent = data.year || '-';
+                document.getElementById('color').textContent = data.color || '-';
+                document.getElementById('chassis').textContent = data.chassis_number || '-';
+                document.getElementById('engine').textContent = data.engine_type || '-';
+                document.getElementById('mileage').textContent = data.mileage ? `${data.mileage.toLocaleString()} كم` : '-';
+
+                document.getElementById('customerBtn').href = `../customers/view.html?id=${data.customers?.id}`;
+
+                if (data.notes) {
+                    document.getElementById('notes').textContent = data.notes;
+                    document.getElementById('notesCard').style.display = 'block';
+                }
+
+            } catch (error) {
+                console.error('Load error:', error);
+                alert('خطأ في تحميل بيانات السيارة');
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
