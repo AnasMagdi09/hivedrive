@@ -1,14 +1,17 @@
 -- Add base_salary column to users table
 ALTER TABLE users ADD COLUMN IF NOT EXISTS base_salary DECIMAL(10,2) DEFAULT 0;
 
--- Create salary_payments table if not exists
-CREATE TABLE IF NOT EXISTS salary_payments (
+-- Drop old table if exists and recreate
+DROP TABLE IF EXISTS salary_payments CASCADE;
+
+-- Create salary_payments table
+CREATE TABLE salary_payments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     employee_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    payment_type VARCHAR(20) NOT NULL DEFAULT 'monthly', -- 'weekly' or 'monthly'
+    payment_type VARCHAR(20) NOT NULL DEFAULT 'monthly',
     payment_date DATE NOT NULL,
-    week_number INT, -- For weekly payments (1-5)
-    week_start DATE, -- Start date of the week for weekly payments
+    week_number INT,
+    week_start DATE,
     month INT NOT NULL,
     year INT NOT NULL,
     base_salary DECIMAL(10,2) NOT NULL,
@@ -20,9 +23,12 @@ CREATE TABLE IF NOT EXISTS salary_payments (
     net_salary DECIMAL(10,2) NOT NULL,
     notes TEXT,
     paid_by UUID REFERENCES users(id),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(employee_id, payment_type, week_start, month, year)
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Create index for faster lookups (not unique constraint)
+CREATE INDEX idx_salary_payments_lookup ON salary_payments(employee_id, payment_type, year, month);
+CREATE INDEX idx_salary_payments_week ON salary_payments(employee_id, week_start) WHERE week_start IS NOT NULL;
 
 -- Create employee_advances table if not exists
 CREATE TABLE IF NOT EXISTS employee_advances (

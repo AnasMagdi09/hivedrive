@@ -434,7 +434,27 @@
                 return;
             }
 
-            // Determine week number for weekly payments
+            // Check if already paid
+            const weekStartStr = selectedPaymentType === 'weekly' ? currentWeekStart.toISOString().split('T')[0] : null;
+            let existingQuery = db.from('salary_payments')
+                .select('id')
+                .eq('employee_id', selectedEmployee.id)
+                .eq('payment_type', selectedPaymentType)
+                .eq('year', currentMonth.getFullYear());
+            
+            if (selectedPaymentType === 'weekly') {
+                existingQuery = existingQuery.eq('week_start', weekStartStr);
+            } else {
+                existingQuery = existingQuery.eq('month', currentMonth.getMonth() + 1);
+            }
+            
+            const { data: existing } = await existingQuery;
+            if (existing && existing.length > 0) {
+                alert('تم صرف مرتب هذا الموظف بالفعل لهذه الفترة');
+                closeModal();
+                return;
+            }
+
             const weekNumber = selectedPaymentType === 'weekly' ? Math.ceil((currentWeekStart.getDate()) / 7) : null;
 
             try {
@@ -443,7 +463,7 @@
                     payment_type: selectedPaymentType,
                     payment_date: new Date().toISOString().split('T')[0],
                     week_number: weekNumber,
-                    week_start: selectedPaymentType === 'weekly' ? currentWeekStart.toISOString().split('T')[0] : null,
+                    week_start: weekStartStr,
                     month: currentMonth.getMonth() + 1,
                     year: currentMonth.getFullYear(),
                     base_salary: baseSalary,
@@ -455,19 +475,11 @@
                     net_salary: netSalary,
                     notes: notes
                 });
-                if (salaryError) {
-                    if (salaryError.code === '23505') {
-                        alert('تم صرف مرتب هذا الموظف بالفعل لهذه الفترة');
-                        closeModal();
-                        return;
-                    }
-                    throw salaryError;
-                }
+                if (salaryError) throw salaryError;
 
                 if (advancesDeducted > 0) {
                     await db.from('employee_advances').update({ status: 'deducted' }).eq('employee_id', selectedEmployee.id).eq('status', 'pending');
                 }
-
                 const { data: treasuryData } = await db.from('treasury').select('*').limit(1);
                 const treasury = treasuryData && treasuryData[0];
                 if (treasury) {
