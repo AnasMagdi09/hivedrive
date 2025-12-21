@@ -275,10 +275,10 @@
                             </div>
                             <div class="action-buttons">
                                 ${canPayNow 
-                                    ? `<button class="btn btn-primary btn-sm" onclick="openPayModal('${emp.id}')">💳 صرف المرتب</button>`
+                                    ? `<button class="btn btn-primary btn-sm" onclick="window.openPayModal('${emp.id}')">💳 صرف المرتب</button>`
                                     : `<span class="days-remaining">متبقي ${daysRemaining} يوم</span>`
                                 }
-                                <button class="btn btn-secondary btn-sm" onclick="openAdjustModal('${emp.id}')" title="بونص/خصم">±</button>
+                                <button class="btn btn-secondary btn-sm" onclick="window.openAdjustModal('${emp.id}')" title="بونص/خصم">±</button>
                             </div>
                         </div>
                         <div class="salary-details">
@@ -485,6 +485,14 @@
                 alert('خطأ: ' + error.message);
             }
         }
+
+        // Export functions to window for onclick handlers
+        window.openPayModal = openPayModal;
+        window.openAdjustModal = openAdjustModal;
+        window.closeModal = closeModal;
+        window.processSalaryPayment = processSalaryPayment;
+        window.switchTab = switchTab;
+        window.calculateNet = calculateNet;
 
         document.getElementById('mobileMenuBtn').addEventListener('click', () => {
             document.getElementById('sidebar').classList.toggle('open');
