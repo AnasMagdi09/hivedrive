@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="../../assets/css/main.css">
     <link rel="stylesheet" href="../../assets/css/components.css">
     <link rel="stylesheet" href="../../assets/css/rtl.css">
+    <link rel="stylesheet" href="../../assets/css/english-numbers.css">
     <style>
         .permissions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
         .permission-item { background: var(--bg-tertiary); border-radius: 8px; padding: 1rem; display: flex; align-items: center; gap: 0.75rem; }
@@ -135,6 +136,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/utils/numbers.js"></script>
     <script src="../../assets/js/i18n/ar.js"></script>
     <script src="../../assets/js/i18n/en.js"></script>
     <script src="../../assets/js/i18n/i18n.js"></script>
@@ -294,7 +296,7 @@
 
                     if (authError) throw authError;
 
-                    // Insert into users table
+                    // Insert into both users and employees tables
                     const { error: userError } = await db.from('users').insert({
                         id: authData.user.id,
                         email,
@@ -306,7 +308,21 @@
                         permissions
                     });
 
-                    if (userError) throw userError;
+                    if (userError) console.warn('Users table error:', userError);
+
+                    // Also insert into public.employees for salary management
+                    const { error: empError } = await db.from('employees').insert({
+                        name: fullName,
+                        email,
+                        phone,
+                        role,
+                        base_salary: baseSalary,
+                        salary_cycle: role === 'technician' ? 'weekly' : 'monthly',
+                        status: isActive ? 'active' : 'inactive'
+                    });
+
+                    if (empError) console.warn('Employees table error:', empError);
+
                     alert('تم إضافة الموظف بنجاح');
                 }
 

@@ -1,0 +1,37 @@
+/* Force all numbers to display in English (Western Arabic numerals) */
+
+* {
+    font-variant-numeric: lining-nums;
+}
+
+/* Force English numerals for all text content */
+body,
+input,
+textarea,
+select,
+button,
+table,
+.form-input,
+.form-select,
+.table,
+.badge,
+.stat-value,
+.card,
+.modal {
+    font-feature-settings: "tnum" 1;
+}
+
+/* Ensure inputs always use English numbers */
+input[type="number"],
+input[type="tel"],
+input[type="text"] {
+    direction: ltr;
+    text-align: left;
+}
+
+/* For RTL pages, keep numbers LTR */
+[dir="rtl"] input[type="number"],
+[dir="rtl"] input[type="tel"] {
+    direction: ltr;
+    text-align: left;
+}

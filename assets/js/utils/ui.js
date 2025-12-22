@@ -152,11 +152,11 @@ const UI = {
      * Format currency
      */
     formatCurrency(amount) {
-        return new Intl.NumberFormat(i18n.getLanguage() === 'ar' ? 'ar-EG' : 'en-EG', {
-            style: 'currency',
-            currency: 'EGP',
-            minimumFractionDigits: 2
-        }).format(amount);
+        // Always use English numerals
+        return new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(amount) + ' ج.م';
     },
 
     /**
@@ -168,14 +168,16 @@ const UI = {
             ? { year: 'numeric', month: 'short', day: 'numeric' }
             : { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
 
-        return d.toLocaleDateString(i18n.getLanguage() === 'ar' ? 'ar-EG' : 'en-US', options);
+        // Always use English numerals
+        return d.toLocaleDateString('en-GB', options);
     },
 
     /**
      * Format number
      */
     formatNumber(num) {
-        return new Intl.NumberFormat(i18n.getLanguage() === 'ar' ? 'ar-EG' : 'en-US').format(num);
+        // Always use English numerals
+        return new Intl.NumberFormat('en-US').format(num);
     }
 };
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
@@ -633,6 +633,7 @@
     </form>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/utils/numbers.js"></script>
     <script src="../../assets/js/config/supabase.js"></script>
     <script src="../../assets/js/auth/auth.js"></script>
     <script src="../../assets/js/utils/ui.js"></script>
@@ -735,7 +736,9 @@
 
         async function onCustomerChange() {
             const customerId = document.getElementById('customer_id').value;
-            const customer = allCustomers.find(c => c.id === customerId);
+            console.log('Selected customer ID:', customerId, 'Type:', typeof customerId);
+            
+            const customer = allCustomers.find(c => String(c.id) === String(customerId));
 
             if (customer) {
                 document.getElementById('phone').value = customer.phone || '';
@@ -747,12 +750,21 @@
             vehicleSelect.innerHTML = '<option value="">-- اختر المركبة --</option>';
 
             if (customerId) {
-                const { data: vehicles } = await db
+                console.log('Fetching vehicles for customer:', customerId);
+                const { data: vehicles, error } = await db
                     .from('vehicles')
                     .select('*')
                     .eq('customer_id', customerId);
 
+                console.log('Vehicles query result:', { vehicles, error });
+                
+                if (error) {
+                    console.error('Error loading vehicles:', error);
+                }
+
                 allVehicles = vehicles || [];
+                console.log('Found vehicles:', allVehicles.length);
+                
                 allVehicles.forEach(v => {
                     const option = document.createElement('option');
                     option.value = v.id;
@@ -946,17 +958,19 @@
                 const total = servicesTotal + partsTotal;
 
                 const quotationData = {
-                    customer_id: customerId,
-                    vehicle_id: vehicleId,
-                    branch_id: user?.branch_id,
-                    subtotal: total,
-                    discount_percent: 0,
-                    discount_amount: 0,
-                    tax_percent: 0,
-                    tax_amount: 0,
-                    total,
-                    notes: document.getElementById('notes').value,
-                    created_by: user?.id
+                    quote_number: 'Q-' + Date.now(),
+                    customer_id: customerId || null,
+                    customer_name: document.getElementById('customerName')?.value || '',
+                    customer_phone: document.getElementById('customerPhone')?.value || '',
+                    vehicle_id: vehicleId || null,
+                    vehicle_info: '',
+                    status: 'pending',
+                    total_amount: total,
+                    discount: 0,
+                    tax: 0,
+                    final_amount: total,
+                    notes: document.getElementById('notes')?.value || ''
+                    // Skip created_by_id - will use default or trigger
                 };
 
                 let savedQuotation;

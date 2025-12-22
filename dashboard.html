@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/components.css">
     <link rel="stylesheet" href="assets/css/rtl.css">
+    <link rel="stylesheet" href="assets/css/english-numbers.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
@@ -80,11 +81,6 @@
         <main class="main-content">
             <header class="header" id="header">
                 <div class="header-left">
-                    <button class="btn btn-icon btn-ghost" id="mobileMenuBtn">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" />
-                        </svg>
-                    </button>
                     <h1 class="page-title">لوحة التحكم</h1>
                 </div>
                 <div class="header-right">
@@ -208,6 +204,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/utils/numbers.js"></script>
     <script src="assets/js/i18n/ar.js"></script>
     <script src="assets/js/i18n/en.js"></script>
     <script src="assets/js/i18n/i18n.js"></script>
@@ -531,11 +528,6 @@
                 console.error('Low stock error:', error);
             }
         }
-
-        // Mobile menu
-        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('open');
-        });
 
         init();
     </script>

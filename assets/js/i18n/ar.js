@@ -30,6 +30,7 @@ const ar = {
     payments: 'المدفوعات',
     treasury: 'الخزينة',
     employees: 'الموظفين',
+    advances: 'السلف',
     reports: 'التقارير',
     settings: 'الإعدادات',
 

@@ -8,14 +8,14 @@ const Quotations = {
      */
     async loadList(options = {}) {
         try {
-            const { data, count } = await API.list('quotations', {
-                select: `*, customers(name), vehicles(plate_number, brand, model), 
-                         created_by_user:users!quotations_created_by_fkey(full_name)`,
-                orderBy: 'created_at',
-                ascending: false,
-                ...options
-            });
-            return { data, count };
+            const { data, error } = await db
+                .from('quotations')
+                .select(`*, customers(id, name, phone), vehicles(id, brand, model, plate_number)`)
+                .order('created_at', { ascending: false })
+                .limit(options.limit || 20);
+            
+            if (error) throw error;
+            return { data: data || [], count: data?.length || 0 };
         } catch (error) {
             console.error('Load quotations error:', error);
             return { data: [], count: 0 };
@@ -255,6 +255,8 @@ const Quotations = {
      * Render quotations table
      */
     renderTable(quotations, container) {
+        console.log('Rendering quotations:', quotations);
+        
         if (!quotations || quotations.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
@@ -281,23 +283,25 @@ const Quotations = {
                         </tr>
                     </thead>
                     <tbody>
-                        ${quotations.map(q => `
+                        ${quotations.map(q => {
+                            console.log('Quotation item:', q.id, q);
+                            return `
                             <tr>
-                                <td><a href="view.html?id=${q.id}">${q.quotation_number}</a></td>
-                                <td>${q.customers?.name || '-'}</td>
-                                <td>${q.vehicles?.brand || ''} ${q.vehicles?.plate_number || ''}</td>
-                                <td class="font-semibold">${UI.formatCurrency(q.total || 0)}</td>
+                                <td><a href="view.html?id=${q.id}">${q.quote_number || q.quotation_number || '-'}</a></td>
+                                <td>${q.customer_name || q.customers?.name || '-'}</td>
+                                <td>${q.vehicle_info || (q.vehicles?.brand ? q.vehicles.brand + ' ' + (q.vehicles.plate_number || '') : '-')}</td>
+                                <td class="font-semibold">${UI.formatCurrency(q.total_amount || q.total || 0)}</td>
                                 <td>${this.getStatusBadge(q.status)}</td>
                                 <td class="text-sm text-muted">${UI.formatDate(q.created_at)}</td>
                                 <td>
                                     <div class="flex gap-2">
-                                        <a href="view.html?id=${q.id}" class="btn btn-icon btn-ghost btn-sm">
+                                        <a href="view.html?id=${q.id}" class="btn btn-icon btn-ghost btn-sm" title="عرض">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                                             </svg>
                                         </a>
                                         ${q.status === 'draft' || q.status === 'pending' ? `
-                                            <a href="form.html?id=${q.id}" class="btn btn-icon btn-ghost btn-sm">
+                                            <a href="form.html?id=${q.id}" class="btn btn-icon btn-ghost btn-sm" title="تعديل">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -307,7 +311,7 @@ const Quotations = {
                                     </div>
                                 </td>
                             </tr>
-                        `).join('')}
+                        `}).join('')}
                     </tbody>
                 </table>
             </div>

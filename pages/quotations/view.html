@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="../../assets/css/main.css">
     <link rel="stylesheet" href="../../assets/css/components.css">
     <link rel="stylesheet" href="../../assets/css/rtl.css">
+    <link rel="stylesheet" href="../../assets/css/english-numbers.css">
     <style>
         .quote-detail-header {
             display: flex;
@@ -118,15 +119,7 @@
         <aside class="sidebar" id="sidebar"></aside>
         <main class="main-content">
             <header class="header" id="header">
-                <div class="header-left">
-                    <button class="btn btn-icon btn-ghost" id="mobileMenuBtn">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="3" y1="12" x2="21" y2="12" />
-                            <line x1="3" y1="6" x2="21" y2="6" />
-                            <line x1="3" y1="18" x2="21" y2="18" />
-                        </svg>
-                    </button>
-                    <a href="list.html" class="btn btn-ghost">
+                <div class="header-left"><a href="list.html" class="btn btn-ghost">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M19 12H5M12 19l-7-7 7-7"/>
                         </svg>
@@ -153,6 +146,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/utils/numbers.js"></script>
     <script src="../../assets/js/i18n/ar.js"></script>
     <script src="../../assets/js/i18n/en.js"></script>
     <script src="../../assets/js/i18n/i18n.js"></script>
@@ -235,7 +229,7 @@
             document.getElementById('quotationDetails').innerHTML = `
                 <div class="quote-detail-header">
                     <div>
-                        <div class="quote-number-box">${q.quotation_number}</div>
+                        <div class="quote-number-box">${q.quote_number || q.quotation_number}</div>
                         <p class="text-muted mt-2">تاريخ الإنشاء: ${formatDate(q.created_at)}</p>
                     </div>
                     <div class="text-left">
@@ -329,7 +323,7 @@
                     </div>
                     <div class="total-row grand">
                         <span>الإجمالي النهائي</span>
-                        <span>${formatCurrency(q.total)}</span>
+                        <span>${formatCurrency(q.total_amount || q.total || q.final_amount)}</span>
                     </div>
                 </div>
 

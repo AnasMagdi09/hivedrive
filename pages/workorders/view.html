@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="../../assets/css/main.css">
     <link rel="stylesheet" href="../../assets/css/components.css">
     <link rel="stylesheet" href="../../assets/css/rtl.css">
+    <link rel="stylesheet" href="../../assets/css/english-numbers.css">
     <style>
         .wo-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--primary); }
         .wo-number-box { background: var(--primary); color: white; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 1.25rem; font-weight: 700; }
@@ -39,13 +40,7 @@
         <aside class="sidebar" id="sidebar"></aside>
         <main class="main-content">
             <header class="header" id="header">
-                <div class="header-left">
-                    <button class="btn btn-icon btn-ghost" id="mobileMenuBtn">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" />
-                        </svg>
-                    </button>
-                    <a href="list.html" class="btn btn-ghost">← رجوع</a>
+                <div class="header-left"><a href="list.html" class="btn btn-ghost">← رجوع</a>
                     <h1 class="page-title">تفاصيل أمر الشغل</h1>
                 </div>
                 <div class="header-right">
@@ -64,6 +59,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/utils/numbers.js"></script>
     <script src="../../assets/js/i18n/ar.js"></script>
     <script src="../../assets/js/i18n/en.js"></script>
     <script src="../../assets/js/i18n/i18n.js"></script>

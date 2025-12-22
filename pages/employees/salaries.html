@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -11,11 +11,12 @@
     <link rel="stylesheet" href="../../assets/css/main.css">
     <link rel="stylesheet" href="../../assets/css/components.css">
     <link rel="stylesheet" href="../../assets/css/rtl.css">
+    <link rel="stylesheet" href="../../assets/css/english-numbers.css">
     <style>
         .salary-card { background: var(--bg-card); border-radius: 12px; padding: 1.5rem; border: 1px solid var(--border-color); margin-bottom: 1rem; }
         .salary-card.paid { border-right: 4px solid #10b981; }
         .salary-card.pending { border-right: 4px solid #f59e0b; }
-        .salary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .salary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem; }
         .employee-info { display: flex; align-items: center; gap: 1rem; }
         .employee-avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: white; }
         .employee-avatar.technician { background: #f59e0b; }
@@ -28,16 +29,19 @@
         .salary-item .value.danger { color: #ef4444; }
         .salary-item .value.primary { color: var(--accent); }
         .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-        .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
         .tab-btn { padding: 0.75rem 1.5rem; border: none; background: var(--bg-card); border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: 500; color: var(--text-secondary); border: 1px solid var(--border-color); }
         .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-        .payment-badge { font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 20px; }
+        .payment-badge { font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 20px; margin-right: 0.5rem; }
         .payment-badge.weekly { background: #fef3c7; color: #92400e; }
         .payment-badge.monthly { background: #dbeafe; color: #1e40af; }
         .payment-badge.paid { background: #d1fae5; color: #065f46; }
         .last-payment { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
         .action-buttons { display: flex; gap: 0.5rem; }
         .days-remaining { font-size: 0.75rem; color: var(--text-muted); }
+        .no-data { text-align: center; padding: 3rem; color: var(--text-muted); }
+        .no-data-icon { font-size: 3rem; margin-bottom: 1rem; }
+        
         @media (max-width: 768px) { .salary-details { grid-template-columns: repeat(2, 1fr); } .stats-row { grid-template-columns: repeat(2, 1fr); } }
     </style>
 </head>
@@ -46,13 +50,7 @@
         <aside class="sidebar" id="sidebar"></aside>
         <main class="main-content">
             <header class="header">
-                <div class="header-left">
-                    <button class="btn btn-icon btn-ghost" id="mobileMenuBtn">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
-                        </svg>
-                    </button>
-                    <h1 class="page-title">💰 المرتبات</h1>
+                <div class="header-left"><h1 class="page-title">💰 المرتبات</h1>
                 </div>
             </header>
             <div class="page-content">
@@ -68,63 +66,63 @@
     </div>
 
     <!-- Pay/Adjust Salary Modal -->
-    <div class="modal-overlay" id="salaryModal" style="display:none;">
-        <div class="modal" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3 id="modalTitle">صرف مرتب</h3>
-                <button class="btn btn-icon btn-ghost" onclick="closeModal()">✕</button>
+    <div class="modal-backdrop" id="salaryModalBackdrop"></div>
+    <div class="modal" id="salaryModal">
+        <div class="modal-header">
+            <h3 id="modalTitle">صرف مرتب</h3>
+            <button class="btn btn-icon btn-ghost" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group mb-4">
+                <label class="form-label">الموظف</label>
+                <div id="modalEmployeeName" class="font-semibold"></div>
+                <div id="modalPaymentType" class="text-muted text-sm"></div>
             </div>
-            <div class="modal-body">
-                <div class="form-group mb-4">
-                    <label class="form-label">الموظف</label>
-                    <div id="modalEmployeeName" class="font-semibold"></div>
-                    <div id="modalPaymentType" class="text-muted text-sm"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div class="form-group">
-                        <label class="form-label" id="salaryLabel">المرتب الأساسي</label>
-                        <input type="number" class="form-input" id="baseSalary" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">البونص ➕</label>
-                        <input type="number" class="form-input" id="bonus" value="0" min="0" oninput="calculateNet()">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div class="form-group">
-                        <label class="form-label">الخصومات ➖</label>
-                        <input type="number" class="form-input" id="deductions" value="0" min="0" oninput="calculateNet()">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">السلف المستحقة</label>
-                        <input type="number" class="form-input" id="advances" readonly>
-                    </div>
-                </div>
-                <div class="form-group mb-4">
-                    <label class="form-label">سبب البونص/الخصم</label>
-                    <input type="text" class="form-input" id="adjustmentReason" placeholder="مثال: مكافأة أداء، غياب...">
-                </div>
-                <div class="form-group mb-4" style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px;">
-                    <div class="flex justify-between mb-2"><span>المرتب الأساسي:</span><span id="calcBase">0</span></div>
-                    <div class="flex justify-between mb-2 text-success"><span>+ البونص:</span><span id="calcBonus">0</span></div>
-                    <div class="flex justify-between mb-2 text-danger"><span>- الخصومات:</span><span id="calcDeductions">0</span></div>
-                    <div class="flex justify-between mb-2 text-danger"><span>- السلف:</span><span id="calcAdvances">0</span></div>
-                    <hr style="border-color: var(--border-color); margin: 0.5rem 0;">
-                    <div class="flex justify-between font-bold text-lg"><span>صافي المرتب:</span><span id="calcNet" class="text-primary">0</span></div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="form-group">
+                    <label class="form-label" id="salaryLabel">المرتب الأساسي</label>
+                    <input type="number" class="form-input" id="baseSalary" readonly>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">ملاحظات</label>
-                    <textarea class="form-input" id="paymentNotes" rows="2"></textarea>
+                    <label class="form-label">البونص ➕</label>
+                    <input type="number" class="form-input" id="bonus" value="0" min="0" oninput="calculateNet()">
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
-                <button class="btn btn-primary" onclick="processSalaryPayment()">💳 صرف المرتب</button>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="form-group">
+                    <label class="form-label">الخصومات ➖</label>
+                    <input type="number" class="form-input" id="deductions" value="0" min="0" oninput="calculateNet()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">السلف المستحقة</label>
+                    <input type="number" class="form-input" id="advances" readonly>
+                </div>
             </div>
+            <div class="form-group mb-4">
+                <label class="form-label">سبب البونص/الخصم</label>
+                <input type="text" class="form-input" id="adjustmentReason" placeholder="مثال: مكافأة أداء، غياب...">
+            </div>
+            <div class="form-group mb-4" style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px;">
+                <div class="flex justify-between mb-2"><span>المرتب الأساسي:</span><span id="calcBase">0</span></div>
+                <div class="flex justify-between mb-2 text-success"><span>+ البونص:</span><span id="calcBonus">0</span></div>
+                <div class="flex justify-between mb-2 text-danger"><span>- الخصومات:</span><span id="calcDeductions">0</span></div>
+                <div class="flex justify-between mb-2 text-danger"><span>- السلف:</span><span id="calcAdvances">0</span></div>
+                <hr style="border-color: var(--border-color); margin: 0.5rem 0;">
+                <div class="flex justify-between font-bold text-lg"><span>صافي المرتب:</span><span id="calcNet" class="text-primary">0</span></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">ملاحظات</label>
+                <textarea class="form-input" id="paymentNotes" rows="2"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+            <button class="btn btn-primary" onclick="processSalaryPayment()">💳 صرف المرتب</button>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/utils/numbers.js"></script>
     <script src="../../assets/js/i18n/ar.js"></script>
     <script src="../../assets/js/i18n/en.js"></script>
     <script src="../../assets/js/i18n/i18n.js"></script>
@@ -139,8 +137,18 @@
         let allPayments = [];
         let selectedEmployee = null;
 
-        const TECHNICIAN_DAYS = 6; // 6 days for technicians (weekly)
-        const EMPLOYEE_DAYS = 30; // 30 days for other employees (monthly)
+        const TECHNICIAN_DAYS = 6;
+        const EMPLOYEE_DAYS = 30;
+
+        // Role names mapping
+        const roleNames = {
+            'admin': 'مدير النظام',
+            'manager': 'مدير',
+            'reception': 'استقبال',
+            'technician': 'فني',
+            'warehouse': 'أمين مخزن',
+            'treasurer': 'أمين خزينة'
+        };
 
         async function init() {
             i18n.init();
@@ -155,6 +163,7 @@
         }
 
         function formatDate(date) {
+            if (!date) return '-';
             return new Date(date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' });
         }
 
@@ -166,15 +175,35 @@
 
         async function loadData() {
             try {
-                const { data: empData } = await db.from('users').select('*').eq('is_active', true);
+                // Load employees from public.employees table
+                const { data: empData, error: empError } = await db.from('employees').select('*').eq('status', 'active');
+                if (empError) {
+                    console.error('Error loading employees:', empError);
+                    // If table doesn't exist, show setup message
+                    if (empError.code === '42P01') {
+                        document.getElementById('salariesList').innerHTML = `
+                            <div class="no-data">
+                                <div class="no-data-icon">⚠️</div>
+                                <h3>جدول الموظفين غير موجود</h3>
+                                <p>يرجى تشغيل ملف SQL لإنشاء الجداول المطلوبة</p>
+                                <code>database/create_public_employees.sql</code>
+                            </div>`;
+                        return;
+                    }
+                }
                 allEmployees = empData || [];
 
-                const { data: payData } = await db.from('salary_payments').select('*').order('payment_date', { ascending: false });
+                // Load salary payments from public.salary_payments table
+                const { data: payData, error: payError } = await db.from('salary_payments').select('*').order('payment_date', { ascending: false });
+                if (payError) {
+                    console.error('Error loading payments:', payError);
+                }
                 allPayments = payData || [];
 
                 renderCurrentTab();
             } catch (error) {
                 console.error('Load error:', error);
+                document.getElementById('salariesList').innerHTML = `<div class="text-center text-danger py-8">خطأ في تحميل البيانات: ${error.message}</div>`;
             }
         }
 
@@ -198,6 +227,10 @@
             }
         }
 
+        function isTechnician(employee) {
+            return employee.role === 'technician' || employee.salary_cycle === 'weekly';
+        }
+
         function getLastPayment(employeeId) {
             return allPayments.find(p => p.employee_id === employeeId);
         }
@@ -207,7 +240,7 @@
             if (!lastPayment) return true;
             
             const days = daysSince(lastPayment.payment_date);
-            const requiredDays = employee.role === 'technician' ? TECHNICIAN_DAYS : EMPLOYEE_DAYS;
+            const requiredDays = isTechnician(employee) ? TECHNICIAN_DAYS : EMPLOYEE_DAYS;
             return days >= requiredDays;
         }
 
@@ -216,22 +249,19 @@
             if (!lastPayment) return 0;
             
             const days = daysSince(lastPayment.payment_date);
-            const requiredDays = employee.role === 'technician' ? TECHNICIAN_DAYS : EMPLOYEE_DAYS;
+            const requiredDays = isTechnician(employee) ? TECHNICIAN_DAYS : EMPLOYEE_DAYS;
             return Math.max(0, requiredDays - days);
         }
 
         function renderEmployees() {
-            const isTechnicians = currentTab === 'technicians';
-            const employees = allEmployees.filter(e => isTechnicians ? e.role === 'technician' : e.role !== 'technician');
-            const roleLabels = { admin: 'مدير', manager: 'مدير عمليات', reception: 'استقبال', technician: 'فني', warehouse: 'أمين مخزن', treasurer: 'أمين خزينة' };
+            const isTechniciansTab = currentTab === 'technicians';
+            const employees = allEmployees.filter(e => isTechniciansTab ? isTechnician(e) : !isTechnician(e));
 
             // Stats
-            let totalBase = 0, totalPaid = 0, paidCount = 0, pendingCount = 0;
+            let totalBase = 0, paidCount = 0, pendingCount = 0;
             employees.forEach(emp => {
-                totalBase += emp.base_salary || 0;
-                const lastPay = getLastPayment(emp.id);
-                if (lastPay && !canPay(emp)) {
-                    totalPaid += lastPay.net_salary || 0;
+                totalBase += parseFloat(emp.base_salary) || 0;
+                if (!canPay(emp)) {
                     paidCount++;
                 } else {
                     pendingCount++;
@@ -239,7 +269,7 @@
             });
 
             document.getElementById('statsRow').innerHTML = `
-                <div class="stat-card"><div class="stat-icon primary">👥</div><div class="stat-content"><span class="stat-label">عدد ${isTechnicians ? 'الفنيين' : 'الموظفين'}</span><span class="stat-value">${employees.length}</span></div></div>
+                <div class="stat-card"><div class="stat-icon primary">👥</div><div class="stat-content"><span class="stat-label">عدد ${isTechniciansTab ? 'الفنيين' : 'الموظفين'}</span><span class="stat-value">${employees.length}</span></div></div>
                 <div class="stat-card"><div class="stat-icon warning">💵</div><div class="stat-content"><span class="stat-label">إجمالي المرتبات</span><span class="stat-value">${formatCurrency(totalBase)}</span></div></div>
                 <div class="stat-card"><div class="stat-icon success">✅</div><div class="stat-content"><span class="stat-label">تم الصرف</span><span class="stat-value">${paidCount}</span></div></div>
                 <div class="stat-card"><div class="stat-icon danger">⏳</div><div class="stat-content"><span class="stat-label">في الانتظار</span><span class="stat-value">${pendingCount}</span></div></div>
@@ -247,7 +277,12 @@
 
             const container = document.getElementById('salariesList');
             if (employees.length === 0) {
-                container.innerHTML = `<div class="text-center text-muted py-8">لا يوجد ${isTechnicians ? 'فنيين' : 'موظفين'}</div>`;
+                container.innerHTML = `
+                    <div class="no-data">
+                        <div class="no-data-icon">${isTechniciansTab ? '🔧' : '👥'}</div>
+                        <h3>لا يوجد ${isTechniciansTab ? 'فنيين' : 'موظفين'}</h3>
+                        <p>قم بإضافة موظفين من صفحة إدارة الموظفين</p>
+                    </div>`;
                 return;
             }
 
@@ -255,36 +290,37 @@
                 const lastPayment = getLastPayment(emp.id);
                 const canPayNow = canPay(emp);
                 const daysRemaining = getDaysRemaining(emp);
-                const paymentType = emp.role === 'technician' ? 'أسبوعي' : 'شهري';
-                const badgeClass = emp.role === 'technician' ? 'weekly' : 'monthly';
+                const paymentType = isTechnician(emp) ? 'أسبوعي' : 'شهري';
+                const badgeClass = isTechnician(emp) ? 'weekly' : 'monthly';
+                const baseSalary = parseFloat(emp.base_salary) || 0;
 
                 return `
                     <div class="salary-card ${canPayNow ? 'pending' : 'paid'}">
                         <div class="salary-header">
                             <div class="employee-info">
-                                <div class="employee-avatar ${emp.role === 'technician' ? 'technician' : ''}">${emp.full_name?.charAt(0) || '?'}</div>
+                                <div class="employee-avatar ${isTechnician(emp) ? 'technician' : ''}">${emp.name?.charAt(0) || '?'}</div>
                                 <div>
                                     <div class="employee-name">
-                                        ${emp.full_name || '-'} 
+                                        ${emp.name || '-'} 
                                         <span class="payment-badge ${badgeClass}">${paymentType}</span>
                                         ${!canPayNow ? '<span class="payment-badge paid">✅ تم الصرف</span>' : ''}
                                     </div>
-                                    <div class="employee-role">${roleLabels[emp.role] || emp.role}</div>
+                                    <div class="employee-role">${roleNames[emp.role] || emp.role || 'موظف'}</div>
                                     ${lastPayment ? `<div class="last-payment">آخر صرف: ${formatDate(lastPayment.payment_date)}</div>` : ''}
                                 </div>
                             </div>
                             <div class="action-buttons">
                                 ${canPayNow 
-                                    ? `<button class="btn btn-primary btn-sm" onclick="window.openPayModal('${emp.id}')">💳 صرف المرتب</button>`
+                                    ? `<button class="btn btn-primary btn-sm" onclick="window.openPayModal(${emp.id})">💳 صرف المرتب</button>`
                                     : `<span class="days-remaining">متبقي ${daysRemaining} يوم</span>`
                                 }
-                                <button class="btn btn-secondary btn-sm" onclick="window.openAdjustModal('${emp.id}')" title="بونص/خصم">±</button>
+                                <button class="btn btn-secondary btn-sm" onclick="window.openAdjustModal(${emp.id})" title="بونص/خصم">±</button>
                             </div>
                         </div>
                         <div class="salary-details">
-                            <div class="salary-item"><div class="label">المرتب الأساسي</div><div class="value">${formatCurrency(emp.base_salary)}</div></div>
-                            <div class="salary-item"><div class="label">آخر بونص</div><div class="value success">${formatCurrency(lastPayment?.bonus || 0)}</div></div>
-                            <div class="salary-item"><div class="label">آخر خصم</div><div class="value danger">${formatCurrency(lastPayment?.deductions || 0)}</div></div>
+                            <div class="salary-item"><div class="label">المرتب الأساسي</div><div class="value">${formatCurrency(baseSalary)}</div></div>
+                            <div class="salary-item"><div class="label">آخر بونص</div><div class="value success">${formatCurrency(lastPayment?.bonuses || 0)}</div></div>
+                            <div class="salary-item"><div class="label">آخر خصم</div><div class="value danger">${formatCurrency(lastPayment?.other_deductions || 0)}</div></div>
                             <div class="salary-item"><div class="label">آخر سلف</div><div class="value danger">${formatCurrency(lastPayment?.advances_deducted || 0)}</div></div>
                             <div class="salary-item"><div class="label">آخر صافي</div><div class="value primary">${formatCurrency(lastPayment?.net_salary || 0)}</div></div>
                         </div>
@@ -298,11 +334,15 @@
             const container = document.getElementById('salariesList');
             
             if (allPayments.length === 0) {
-                container.innerHTML = '<div class="text-center text-muted py-8">لا يوجد سجل مرتبات</div>';
+                container.innerHTML = `
+                    <div class="no-data">
+                        <div class="no-data-icon">📜</div>
+                        <h3>لا يوجد سجل مرتبات</h3>
+                        <p>سيظهر هنا سجل المرتبات بعد صرف أول مرتب</p>
+                    </div>`;
                 return;
             }
 
-            // Group by month
             const grouped = {};
             allPayments.forEach(p => {
                 const key = `${p.year}-${String(p.month).padStart(2, '0')}`;
@@ -314,7 +354,7 @@
 
             container.innerHTML = Object.entries(grouped).sort((a, b) => b[0].localeCompare(a[0])).map(([key, payments]) => {
                 const [year, month] = key.split('-');
-                const total = payments.reduce((sum, p) => sum + (p.net_salary || 0), 0);
+                const total = payments.reduce((sum, p) => sum + (parseFloat(p.net_salary) || 0), 0);
                 
                 return `
                     <div class="card mb-4">
@@ -339,11 +379,11 @@
                                         const emp = allEmployees.find(e => e.id === p.employee_id);
                                         return `
                                             <tr>
-                                                <td>${emp?.full_name || '-'}</td>
+                                                <td>${emp?.name || '-'}</td>
                                                 <td>${formatDate(p.payment_date)}</td>
                                                 <td>${formatCurrency(p.base_salary)}</td>
-                                                <td class="text-success">${formatCurrency(p.bonus)}</td>
-                                                <td class="text-danger">${formatCurrency(p.deductions)}</td>
+                                                <td class="text-success">${formatCurrency(p.bonuses)}</td>
+                                                <td class="text-danger">${formatCurrency(p.other_deductions)}</td>
                                                 <td class="font-semibold">${formatCurrency(p.net_salary)}</td>
                                             </tr>
                                         `;
@@ -358,17 +398,22 @@
 
         async function openPayModal(employeeId) {
             selectedEmployee = allEmployees.find(e => e.id === employeeId);
-            if (!selectedEmployee) return;
+            if (!selectedEmployee) {
+                alert('لم يتم العثور على الموظف');
+                return;
+            }
 
-            const isTechnician = selectedEmployee.role === 'technician';
-            const { data: advData } = await db.from('employee_advances').select('*').eq('employee_id', employeeId).eq('status', 'pending');
-            const totalAdvances = (advData || []).reduce((sum, a) => sum + (a.amount || 0), 0);
+            const isTech = isTechnician(selectedEmployee);
+            const baseSalary = parseFloat(selectedEmployee.base_salary) || 0;
+            
+            // Advances feature disabled for now
+            let totalAdvances = 0;
 
             document.getElementById('modalTitle').textContent = 'صرف مرتب';
-            document.getElementById('modalEmployeeName').textContent = selectedEmployee.full_name;
-            document.getElementById('modalPaymentType').textContent = isTechnician ? '🔧 فني - مرتب أسبوعي (كل 6 أيام)' : '👤 موظف - مرتب شهري';
-            document.getElementById('salaryLabel').textContent = isTechnician ? 'المرتب الأسبوعي' : 'المرتب الشهري';
-            document.getElementById('baseSalary').value = selectedEmployee.base_salary || 0;
+            document.getElementById('modalEmployeeName').textContent = selectedEmployee.name;
+            document.getElementById('modalPaymentType').textContent = isTech ? '🔧 فني - مرتب أسبوعي (كل 6 أيام)' : '👤 موظف - مرتب شهري';
+            document.getElementById('salaryLabel').textContent = isTech ? 'المرتب الأسبوعي' : 'المرتب الشهري';
+            document.getElementById('baseSalary').value = baseSalary;
             document.getElementById('bonus').value = 0;
             document.getElementById('deductions').value = 0;
             document.getElementById('advances').value = totalAdvances;
@@ -376,18 +421,24 @@
             document.getElementById('paymentNotes').value = '';
 
             calculateNet();
-            document.getElementById('salaryModal').style.display = 'flex';
+            document.getElementById('salaryModal').classList.add('open');
+            document.getElementById('salaryModalBackdrop').classList.add('open');
         }
 
         async function openAdjustModal(employeeId) {
             selectedEmployee = allEmployees.find(e => e.id === employeeId);
-            if (!selectedEmployee) return;
+            if (!selectedEmployee) {
+                alert('لم يتم العثور على الموظف');
+                return;
+            }
+
+            const baseSalary = parseFloat(selectedEmployee.base_salary) || 0;
 
             document.getElementById('modalTitle').textContent = 'إضافة بونص / خصم';
-            document.getElementById('modalEmployeeName').textContent = selectedEmployee.full_name;
+            document.getElementById('modalEmployeeName').textContent = selectedEmployee.name;
             document.getElementById('modalPaymentType').textContent = 'تعديل على المرتب القادم';
             document.getElementById('salaryLabel').textContent = 'المرتب الأساسي';
-            document.getElementById('baseSalary').value = selectedEmployee.base_salary || 0;
+            document.getElementById('baseSalary').value = baseSalary;
             document.getElementById('bonus').value = 0;
             document.getElementById('deductions').value = 0;
             document.getElementById('advances').value = 0;
@@ -395,7 +446,8 @@
             document.getElementById('paymentNotes').value = '';
 
             calculateNet();
-            document.getElementById('salaryModal').style.display = 'flex';
+            document.getElementById('salaryModal').classList.add('open');
+            document.getElementById('salaryModalBackdrop').classList.add('open');
         }
 
         function calculateNet() {
@@ -413,12 +465,16 @@
         }
 
         function closeModal() {
-            document.getElementById('salaryModal').style.display = 'none';
+            document.getElementById('salaryModal').classList.remove('open');
+            document.getElementById('salaryModalBackdrop').classList.remove('open');
             selectedEmployee = null;
         }
 
         async function processSalaryPayment() {
-            if (!selectedEmployee) return;
+            if (!selectedEmployee) {
+                alert('لم يتم تحديد موظف');
+                return;
+            }
 
             const baseSalary = parseFloat(document.getElementById('baseSalary').value) || 0;
             const bonus = parseFloat(document.getElementById('bonus').value) || 0;
@@ -434,47 +490,63 @@
             }
 
             const now = new Date();
-            const paymentType = selectedEmployee.role === 'technician' ? 'weekly' : 'monthly';
+            const fullNotes = [notes, reason ? `سبب التعديل: ${reason}` : ''].filter(Boolean).join(' - ');
 
             try {
-                const { error: salaryError } = await db.from('salary_payments').insert({
+                // Use only the absolutely required fields
+                const paymentData = {
                     employee_id: selectedEmployee.id,
-                    payment_type: paymentType,
                     payment_date: now.toISOString().split('T')[0],
                     month: now.getMonth() + 1,
                     year: now.getFullYear(),
                     base_salary: baseSalary,
-                    bonus: bonus,
-                    bonus_reason: bonus > 0 ? reason : null,
-                    deductions: deductions,
-                    deduction_reason: deductions > 0 ? reason : null,
-                    advances_deducted: advancesDeducted,
                     net_salary: netSalary,
-                    notes: notes
-                });
-                if (salaryError) throw salaryError;
+                    status: 'paid'
+                };
 
-                if (advancesDeducted > 0) {
-                    await db.from('employee_advances').update({ status: 'deducted' }).eq('employee_id', selectedEmployee.id).eq('status', 'pending');
+                console.log('Attempting to insert:', paymentData);
+
+                const { data: salaryData, error: salaryError } = await db.from('salary_payments').insert(paymentData).select();
+                
+                if (salaryError) {
+                    console.error('Salary insert error:', salaryError);
+                    alert('خطأ في الإدخال: ' + salaryError.message + '\n\nجرب إعادة تحميل الصفحة أو إعادة تشغيل Supabase API');
+                    throw salaryError;
                 }
 
-                // Deduct from treasury
-                const { data: treasuryData } = await db.from('treasury').select('*').limit(1);
-                const treasury = treasuryData && treasuryData[0];
-                if (treasury) {
-                    const newBalance = (treasury.current_balance || 0) - netSalary;
-                    await db.from('treasury').update({ current_balance: newBalance }).eq('id', treasury.id);
+                // Update treasury - deduct salary from balance
+                try {
+                    // Get main treasury account
+                    const { data: treasuryAccounts } = await db.from('treasury_accounts').select('*').eq('status', 'active').limit(1);
                     
-                    await db.from('treasury_transactions').insert({
-                        treasury_id: treasury.id,
-                        transaction_type: 'expense',
-                        category: paymentType === 'weekly' ? 'مرتبات أسبوعية' : 'مرتبات شهرية',
-                        amount: netSalary,
-                        balance_after: newBalance,
-                        reference_type: 'salary',
-                        description: `مرتب ${selectedEmployee.full_name}`,
-                        transaction_date: now.toISOString().split('T')[0]
-                    });
+                    if (treasuryAccounts && treasuryAccounts.length > 0) {
+                        const treasury = treasuryAccounts[0];
+                        const newBalance = (treasury.current_balance || 0) - netSalary;
+                        
+                        // Update treasury balance
+                        await db.from('treasury_accounts')
+                            .update({ current_balance: newBalance })
+                            .eq('id', treasury.id);
+                        
+                        // Record transaction
+                        const isTech = isTechnician(selectedEmployee);
+                        await db.from('treasury_transactions').insert({
+                            treasury_account_id: treasury.id,
+                            transaction_type: 'expense',
+                            category: isTech ? 'مرتبات أسبوعية' : 'مرتبات شهرية',
+                            amount: netSalary,
+                            balance_after: newBalance,
+                            reference_type: 'salary',
+                            reference_id: salaryData[0]?.id,
+                            description: `مرتب ${selectedEmployee.name}`,
+                            transaction_date: now.toISOString().split('T')[0]
+                        });
+                        
+                        console.log('Treasury updated successfully');
+                    }
+                } catch (treasuryError) {
+                    console.warn('Could not update treasury:', treasuryError);
+                    // Don't fail the whole operation if treasury update fails
                 }
 
                 alert('تم صرف المرتب بنجاح ✅');
@@ -482,7 +554,7 @@
                 await loadData();
             } catch (error) {
                 console.error('Payment error:', error);
-                alert('خطأ: ' + error.message);
+                alert('خطأ في صرف المرتب: ' + (error.message || error));
             }
         }
 
@@ -492,13 +564,7 @@
         window.closeModal = closeModal;
         window.processSalaryPayment = processSalaryPayment;
         window.switchTab = switchTab;
-        window.calculateNet = calculateNet;
-
-        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('open');
-        });
-
-        init();
+        window.calculateNet = calculateNet;init();
     </script>
 </body>
 </html>

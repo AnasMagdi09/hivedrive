@@ -10,6 +10,9 @@ const Inventory = {
         try {
             const user = auth.getUser();
             const branchId = user?.branch_id;
+            
+            console.log('User:', user);
+            console.log('Branch ID:', branchId);
 
             // Get parts with optional inventory join
             const { data: parts, count } = await API.list('parts', {
@@ -18,6 +21,8 @@ const Inventory = {
                 ascending: true,
                 ...options
             });
+
+            console.log('Parts loaded:', parts);
 
             // If we have parts, get their inventory for this branch
             if (parts && parts.length > 0 && branchId) {
@@ -28,6 +33,8 @@ const Inventory = {
                     .eq('branch_id', branchId)
                     .in('part_id', partIds);
 
+                console.log('Inventory data:', inventoryData);
+
                 // Map inventory to parts
                 const inventoryMap = {};
                 (inventoryData || []).forEach(inv => {
@@ -37,7 +44,34 @@ const Inventory = {
                 parts.forEach(part => {
                     const inv = inventoryMap[part.id] || { quantity: 0, reserved_quantity: 0 };
                     part.inventory = [inv];
+                    console.log(`Part ${part.name}: quantity = ${inv.quantity}`);
                 });
+            } else {
+                console.warn('No branch_id found for user or no parts');
+                // إذا لم يكن هناك branch_id، نحاول جلب المخزون من أي فرع
+                if (parts && parts.length > 0) {
+                    const partIds = parts.map(p => p.id);
+                    const { data: inventoryData } = await db
+                        .from('inventory')
+                        .select('part_id, quantity, reserved_quantity, branch_id')
+                        .in('part_id', partIds);
+
+                    console.log('Inventory data (all branches):', inventoryData);
+
+                    // Map inventory to parts (use first branch found)
+                    const inventoryMap = {};
+                    (inventoryData || []).forEach(inv => {
+                        if (!inventoryMap[inv.part_id]) {
+                            inventoryMap[inv.part_id] = inv;
+                        }
+                    });
+
+                    parts.forEach(part => {
+                        const inv = inventoryMap[part.id] || { quantity: 0, reserved_quantity: 0 };
+                        part.inventory = [inv];
+                        console.log(`Part ${part.name}: quantity = ${inv.quantity}`);
+                    });
+                }
             }
 
             return { data: parts, count };

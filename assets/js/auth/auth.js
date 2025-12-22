@@ -49,7 +49,7 @@ class Auth {
         try {
             const { data, error } = await db
                 .from('users')
-                .select('*, branches(name, name_en)')
+                .select('*')
                 .eq('id', userId)
                 .maybeSingle();
 
